@@ -2,7 +2,8 @@
 
 À la fin de cette étape, les routes peuvent utiliser permission:…, role:… et role\_or\_permission:….
 
-**Mémo — Où se déclarent les middlewares depuis Laravel 11.** Le fichier app/Http/Kernel.php n'existe plus. Les alias se déclarent dans bootstrap/app.php, dans withMiddleware(). Un alias est un nom court (permission) qui pointe vers une classe.
+> [!NOTE]
+> **Mémo — Où se déclarent les middlewares depuis Laravel 11.** Le fichier app/Http/Kernel.php n'existe plus. Les alias se déclarent dans bootstrap/app.php, dans withMiddleware(). Un alias est un nom court (permission) qui pointe vers une classe.
 
 **Faire — vérifier les noms de classes à la source**, avant de les écrire :
 
@@ -30,7 +31,8 @@ $middleware->alias([
 ]);
 ```
 
-**Mémo — Une faute de frappe qui ne se voit pas.** Écrire Role\_or\_PermissionMiddleware::class ne provoque aucune erreur au démarrage : ::class produit seulement une chaîne de caractères, sans vérifier que la classe existe. Laravel ne cherche la classe qu'au moment où une route utilise l'alias. L'application plante alors avec « Target class \[...\] does not exist. », parfois des semaines plus tard. D'où la vérification dans vendor, plutôt que la confiance dans un exemple trouvé en ligne.
+> [!WARNING]
+> **Mémo — Une faute de frappe qui ne se voit pas.** Écrire Role\_or\_PermissionMiddleware::class ne provoque aucune erreur au démarrage : ::class produit seulement une chaîne de caractères, sans vérifier que la classe existe. Laravel ne cherche la classe qu'au moment où une route utilise l'alias. L'application plante alors avec « Target class \[...\] does not exist. », parfois des semaines plus tard. D'où la vérification dans vendor, plutôt que la confiance dans un exemple trouvé en ligne.
 
 **Preuve** — la sortie de la commande ls (ou dir) ci-dessus.
 

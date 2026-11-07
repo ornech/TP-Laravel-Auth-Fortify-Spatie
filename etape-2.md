@@ -83,7 +83,8 @@ php artisan db:seed --class=RoleSeeder
 php artisan db:seed --class=DemoUserSeeder
 ```
 
-**Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
+> [!NOTE]
+> **Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
 
 Tests
 

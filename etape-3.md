@@ -34,9 +34,10 @@ Copiez la sortie et notez le nombre de routes dans PREUVES.md.
 ],
 ```
 
-**Mémo:** Chaque fonctionnalité (feature) activée est une route accessible et donc une surface d'attaque et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
-
-Règle : on n'active que ce qu'on utilise et qu'on a testé.
+> [!NOTE]
+> **Mémo:** Chaque fonctionnalité (feature) activée est une route accessible et donc une surface d'attaque et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
+>
+> **Règle : on n'active que ce qu'on utilise et qu'on a testé.**
 
 **Après ...**
 
@@ -69,13 +70,14 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
         Fortify::registerView(fn () => view('auth.register'));
 ```
 
-**Mémo — Ce que boot() contient déjà, et pourquoi il ne faut pas l'écraser.**
-
-| Ligne de boot() | Si vous la supprimez |
-| --- | --- |
-| Fortify::createUsersUsing(CreateNewUser::class) | L'inscription plante : Fortify ne sait plus quelle classe crée les comptes |
-| RateLimiter::for('login', ...) | Toute connexion renvoie une 500 « Rate limiter \[login\] is not defined. » |
-| RateLimiter::for('two-factor', ...) | Les routes de double authentification plantent, si cette fonctionnalité est active |
+> [!WARNING]
+> **Mémo — Ce que boot() contient déjà, et pourquoi il ne faut pas l'écraser.**
+>
+> | Ligne de boot() | Si vous la supprimez |
+> | --- | --- |
+> | Fortify::createUsersUsing(CreateNewUser::class) | L'inscription plante : Fortify ne sait plus quelle classe crée les comptes |
+> | RateLimiter::for('login', ...) | Toute connexion renvoie une 500 « Rate limiter \[login\] is not defined. » |
+> | RateLimiter::for('two-factor', ...) | Les routes de double authentification plantent, si cette fonctionnalité est active |
 
 **Faire — la vue de connexion.** Créez resources/views/auth/login.blade.php à partir de ce modèle commenté :
 
@@ -127,16 +129,17 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 | **$errors** | Contient les messages d'erreur renvoyés par Fortify |
 | **name="email", name="password"** | Les noms que Fortify attend. Un autre nom, et la connexion échoue. |
 
-**Mémo: La protection CSRF de Laravel.**
-
-Laravel 13 vérifie qu'un POST vient bien de votre site en deux temps :
-
-- **Origine** : si l'en-tête Sec-Fetch-Site vaut same-origin, la requête est acceptée sans vérification du jeton. Cet en-tête est ajouté par le navigateur, pas par Laravel : les navigateurs ne l'envoient que vers des adresses jugées sûres (HTTPS, mais aussi localhost et 127.0.0.1, même en HTTP). Un outil comme curl ne l'envoie pas.
-- **Jeton** : si l'en-tête est absent (curl, ancien navigateur, adresse HTTP non sûre) ou ne vaut pas same-origin, Laravel compare le jeton \_token à celui de la session.
-
-Si les deux échouent → 419 page expired ou 403 en mode originOnly.
-
-Conseil : gardez **@csrf** dans vos formulaires: c'est gratuit, simple et couvre les cas où Sec-Fetch-Site serait absent.
+> [!NOTE]
+> **Mémo: La protection CSRF de Laravel.**
+>
+> Laravel 13 vérifie qu'un POST vient bien de votre site en deux temps :
+>
+> - **Origine** : si l'en-tête Sec-Fetch-Site vaut same-origin, la requête est acceptée sans vérification du jeton. Cet en-tête est ajouté par le navigateur, pas par Laravel : les navigateurs ne l'envoient que vers des adresses jugées sûres (HTTPS, mais aussi localhost et 127.0.0.1, même en HTTP). Un outil comme curl ne l'envoie pas.
+> - **Jeton** : si l'en-tête est absent (curl, ancien navigateur, adresse HTTP non sûre) ou ne vaut pas same-origin, Laravel compare le jeton \_token à celui de la session.
+>
+> Si les deux échouent → 419 page expired ou 403 en mode originOnly.
+>
+> Conseil : gardez **@csrf** dans vos formulaires: c'est gratuit, simple et couvre les cas où Sec-Fetch-Site serait absent.
 
 ## **Création du tableau de bord minimal et de la déconnexion**
 
@@ -191,9 +194,10 @@ Route::middleware('auth')->group(function () {
 
 La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côté serveur. Après la déconnexion, Fortify redirige vers /.
 
-**Mémo — Pourquoi la déconnexion est un POST ?**
-
-Une action qui modifie l’état ne doit pas être déclenchable par une simple URL. Avec un GET, n’importe quel site pourrait déconnecter vos utilisateurs, avec un lien vers https://votresite/logout ou en redirigeant vers cette adresse : le navigateur suit le lien en envoyant le cookie de session. Un POST avec la protection CSRF de Laravel refusera la requête venue d’un autre site.
+> [!NOTE]
+> **Mémo — Pourquoi la déconnexion est un POST ?**
+>
+> Une action qui modifie l’état ne doit pas être déclenchable par une simple URL. Avec un GET, n’importe quel site pourrait déconnecter vos utilisateurs, avec un lien vers https://votresite/logout ou en redirigeant vers cette adresse : le navigateur suit le lien en envoyant le cookie de session. Un POST avec la protection CSRF de Laravel refusera la requête venue d’un autre site.
 
 ## **Création de la vue d'inscription**
 

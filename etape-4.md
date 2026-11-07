@@ -170,7 +170,8 @@ L'objectif : voir l'attaque réussir, puis vérifier que le test la détecte.
 
 **F12** = raccourci pour ouvrir les **Developer Tools** du navigateur (`Ctrl + Shift + I` sur Chrome/Edge, `Ctrl + Shift + E` sur Firefox). L'onglet **Elements** permet de modifier le HTML de la page en temps réel.
 
-> ⚠️ Un `type="hidden"` n'est **pas** une protection. Le client peut toujours modifier tout ce qui est envoyé.
+> [!WARNING]
+> Un `type="hidden"` n'est **pas** une protection. Le client peut toujours modifier tout ce qui est envoyé.
 
 1. Remplacez `assignRole('utilisateur')` par la ligne vulnérable : `$user->assignRole($input['role'] ?? 'utilisateur')`.
 2. Lancez `php artisan test --filter=test_un_role_injecte` → le test **doit échouer**. S'il passe, il ne protège rien : signalez-le.

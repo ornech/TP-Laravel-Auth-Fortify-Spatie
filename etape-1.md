@@ -43,15 +43,17 @@ Dans app/Models/User.php, ajoutez **l'import** et le **trait** HasRoles.
 
 Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasRole(), syncRoles()… La méthode can(), déjà présente, se met à tenir compte des permissions Spatie (voir le mémo).
 
-**Mémo:** Le trait ***HasRoles***
+> [!NOTE]
+> **Mémo:** Le trait ***HasRoles***
+>
+> En PHP, une classe n’hérite que d’**une seule** classe parente. *User* hérite déjà de *Authenticatable* : on ne peut pas lui ajouter un second *extends*.
+>
+> Le **trait** contourne cette limite. C’est un bloc de méthodes que PHP recopie dans la classe qui l’utilise. En écrivant *use HasRoles;* dans *User*, le modèle reçoit *roles()*, *assignRole()*, *hasRole()*, *syncRoles()*, *givePermissionTo()*… sans qu’on réécrive une ligne.
+>
+> *can()*, lui, existe déjà dans *User* : il vient du trait *Authorizable*, inclus dans *Authenticatable*. Spatie se branche sur ce système d’autorisation de Laravel, en s’appuyant sur les méthodes de *HasRoles*. Sans le trait, *can()* répond *false* pour les permissions Spatie, **sans aucune erreur**.
 
-En PHP, une classe n’hérite que d’**une seule** classe parente. *User* hérite déjà de *Authenticatable* : impossible d’hériter en plus de la classe Spatie.
-
-Le **trait** contourne cette limite. C’est un bloc de méthodes que PHP recopie dans la classe qui l’utilise. En écrivant *use HasRoles;* dans *User*, le modèle reçoit *roles()*, *assignRole()*, *hasRole()*, *syncRoles()*, *givePermissionTo()*… sans qu’on réécrive une ligne.
-
-*can()*, lui, vient d’un autre trait (*Authorizable*), déjà présent dans *Authenticatable* : *HasRoles* ne le remplace pas. C’est Spatie qui, au démarrage de l’application, déclare auprès de Laravel un contrôle supplémentaire (un *Gate::before*) : avant de répondre à *can()*, Laravel interroge les permissions Spatie du modèle, grâce aux méthodes que *HasRoles* apporte à *User*. Sans le trait *HasRoles*, *can()* ignore donc les permissions Spatie.
-
-Attention aux deux *use* : celui en haut du fichier **importe un nom** (permet d’écrire ***HasRoles*** au lieu de ***\\Spatie\\Permission\\Traits\\HasRoles***), celui dans la classe **inclut le trait** **à la classe User**.
+> [!WARNING]
+> Attention aux deux *use* : celui en haut du fichier **importe un nom** (permet d’écrire ***HasRoles*** au lieu de ***\\Spatie\\Permission\\Traits\\HasRoles***), celui dans la classe **inclut le trait** **à la classe User**.
 
 test
 
