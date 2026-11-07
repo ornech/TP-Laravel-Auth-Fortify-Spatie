@@ -4,6 +4,8 @@ Lisez d'abord le message d'erreur en entier : dans ce TP, il nomme presque toujo
 
 | Symptôme | Cause | Correction |
 | --- | --- | --- |
+| « Identité d'auteur inconnue » au git commit | Git n'a jamais été configuré sur ce poste | git config user.name "Prénom Nom" et git config user.email "prenom.nom@exemple.fr" (sans --global), puis relancer git commit |
+| php artisan test affiche du JSON au lieu du compte rendu habituel | La commande est lancée depuis un assistant IA : le package laravel/pao, présent dans le squelette Laravel 13, change le format de la sortie | Lancer la commande dans un terminal ordinaire. Sous Linux et macOS : PAO\_DISABLE=1 php artisan test |
 | 419 Page Expired | Requête POST sans jeton ni en-tête Sec-Fetch-Site: same-origin : curl, autre site, ou formulaire sans @csrf dans un navigateur qui n'envoie pas cet en-tête | Ajouter @csrf dans le \<form> |
 | « View \[auth.login\] not found. » | Vue absente ou mal placée | Créer resources/views/auth/login.blade.php |
 | « View \[dashboard\] not found. » | Vue non créée | Étape 3 |

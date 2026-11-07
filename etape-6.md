@@ -121,9 +121,11 @@ Créez resources/views/admin/users.blade.php. Elle affiche un tableau des utilis
 
 **Exercice — masquer ou protéger ?**
 
+Cet exercice et la vérification à la main de la matrice (plus bas) utilisent le navigateur : le serveur de développement doit tourner. S'il est arrêté, relancez php artisan serve dans un terminal dédié.
+
 1. Retirez temporairement la protection : remplacez Route::middleware('permission:gerer-utilisateurs')->prefix('admin') par Route::prefix('admin').
 2. Connectez-vous avec utilisateur@exemple.test (mot de passe password). Le lien n'apparaît pas. Tapez /admin/users dans la barre d'adresse : que voyez-vous ?
-3. Lancez php artisan test --filter=AuthRbacTest. Quel cas de la matrice échoue ? PHPUnit affiche son nom.
+3. Lancez php artisan test --filter=AuthRbacTest. Quel cas de la matrice échoue ? PHPUnit affiche son nom, mais il est coupé par « … » si la fenêtre du terminal est trop étroite : agrandissez-la. Le message de l'échec (code attendu, code reçu) aide aussi à identifier le cas.
 4. Remettez la protection. Tout redevient vert.
 
 **Preuve**

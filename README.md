@@ -30,7 +30,7 @@ Vous saurez :
 6. Expliquer et provoquer les réponses 302, 403, 405, 419 et 429 de votre application.
 7. Faire passer des tests qui servent de preuve, et vérifier qu'ils détectent bien une faille.
 
-**Contexte.** Vous partez d'un dossier vide et créez un projet Laravel 13 neuf à l'étape 0. Prérequis : PHP 8.3 ou plus récent, Composer, et l'extension PHP pdo\_sqlite.
+**Contexte.** Vous partez d'un dossier vide et créez un projet Laravel 13 neuf à l'étape 0. Prérequis : PHP 8.3 ou plus récent, Composer, Git, et l'extension PHP pdo\_sqlite.
 
 Versions de référence:
 

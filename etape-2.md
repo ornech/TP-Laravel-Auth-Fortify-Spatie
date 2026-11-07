@@ -76,34 +76,6 @@ class DemoUserSeeder extends Seeder
 }
 ```
 
-Puis lancez-les :
-
-```bash
-php artisan db:seed --class=RoleSeeder
-php artisan db:seed --class=DemoUserSeeder
-```
-
-> [!NOTE]
-> **Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
->
-> Ici, findOrCreate et firstOrCreate créent ce qui manque sans toucher à ce qui existe déjà, et syncPermissions et syncRoles imposent la liste exacte des permissions et des rôles. Un compte de démonstration déjà présent garde donc son nom et son mot de passe d'origine.
-
-**Tests**
-
-```bash
-php artisan permission:show
-php artisan db:seed --class=RoleSeeder
-php artisan db:seed --class=DemoUserSeeder
-```
-
-permission:show affiche la matrice rôles × permissions. Le second lancement des seeders doit se terminer sans erreur. Copiez les deux sorties.
-
-**Tests qui doivent passer :**
-
-```bash
-php artisan test --filter=test_les_seeders_sont_rejouables
-```
-
 **Faire.** Dans database/seeders/DatabaseSeeder.php, **remplacez le contenu du fichier** par celui-ci (exception à la règle d'or, car le fichier généré n'est qu'un exemple). Le compte `test@example.com` qu'il créait n'aurait aucun rôle, et l'import de User devient inutile.
 
 ```php
@@ -133,19 +105,31 @@ class DatabaseSeeder extends Seeder
 
 L’ordre compte : DemoUserSeeder attribue des rôles que RoleSeeder doit avoir créés.
 
+> [!NOTE]
+> **Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
+>
+> Ici, findOrCreate et firstOrCreate créent ce qui manque sans toucher à ce qui existe déjà, et syncPermissions et syncRoles imposent la liste exacte des permissions et des rôles. Un compte de démonstration déjà présent garde donc son nom et son mot de passe d'origine.
+
 **Preuve.**
 
 ```bash
 php artisan migrate:fresh --seed
+php artisan permission:show
+php artisan db:seed
 ```
+
+migrate:fresh --seed supprime toutes les tables, les recrée, puis lance DatabaseSeeder, donc RoleSeeder puis DemoUserSeeder. permission:show affiche la matrice rôles × permissions. Le second lancement des seeders (db:seed) doit se terminer sans erreur. Copiez les sorties de permission:show et du second lancement dans PREUVES.md.
+
+**Test qui doit passer :**
 
 ```bash
-php artisan permission:show
+php artisan test --filter=test_les_seeders_sont_rejouables
 ```
 
-> **Question 1.**\
-1\) La table *users* contient-elle une colonne pour le rôle ?\
-2\) Dans quelle table est enregistré le fait qu’un compte est administrateur ?
+> **Question 1.**
+>
+> 1. La table *users* contient-elle une colonne pour le rôle ?
+> 2. Dans quelle table est enregistré le fait qu'un compte est administrateur ?
 
 Indices :
 
@@ -157,4 +141,8 @@ php artisan db:table users
 php artisan tinker --execute="dump(DB::table('model_has_roles')->get());"
 ```
 
-Copiez les deux sorties dans PREUVES.md.
+```bash
+php artisan tinker --execute="dump(DB::table('roles')->get());"
+```
+
+Copiez les trois sorties dans PREUVES.md. La troisième sert à traduire l'identifiant d'un rôle (role\_id) en son nom.
