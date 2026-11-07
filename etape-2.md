@@ -8,26 +8,31 @@ Deux seeders, deux responsabilités. RoleSeeder crée la structure des droits, u
 
 ```php
 <?php
+
 namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+
 class RoleSeeder extends Seeder
 {
-/**
-* Run the database seeds.
-*/
-public function run(): void
-{
-// Spatie garde rôles et permissions en cache : on repart d'un cache vide
-app(PermissionRegistrar::class)->forgetCachedPermissions();
-// findOrCreate : crée si absent, récupère sinon
-$gererUtilisateurs = Permission::findOrCreate('gerer-utilisateurs', 'web');
-// Pas de rôle « visiteur » : un visiteur n'est pas connecté (Mémo B)
-Role::findOrCreate('utilisateur', 'web');
-Role::findOrCreate('administrateur', 'web')->syncPermissions([$gererUtilisateurs]);
-}
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Spatie garde rôles et permissions en cache : on repart d'un cache vide
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        // findOrCreate : crée si absent, récupère sinon
+        $gererUtilisateurs = Permission::findOrCreate('gerer-utilisateurs', 'web');
+
+        // Pas de rôle « visiteur » : un visiteur n'est pas connecté
+        Role::findOrCreate('utilisateur', 'web');
+        Role::findOrCreate('administrateur', 'web')->syncPermissions([$gererUtilisateurs]);
+    }
 }
 ```
 
@@ -37,31 +42,37 @@ Role::findOrCreate('administrateur', 'web')->syncPermissions([$gererUtilisateurs
 
 ```php
 <?php
+
 namespace Database\Seeders;
+
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+
 class DemoUserSeeder extends Seeder
 {
-/**
-* Run the database seeds.
-*/
-public function run(): void
-{
-// Des comptes au mot de passe connu n'ont rien à faire en production
-if (! app()->environment(['local', 'testing'])) {
-$this->command?->warn('DemoUserSeeder ignoré hors local/testing.');
-return;
-}
-User::firstOrCreate(
-['email' => 'admin@exemple.test'],
-['name' => 'Admin Démo', 'password' => Hash::make('password')]
-)->syncRoles(['administrateur']);
-User::firstOrCreate(
-['email' => 'utilisateur@exemple.test'],
-['name' => 'Utilisateur Démo', 'password' => Hash::make('password')]
-)->syncRoles(['utilisateur']);
-}
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // Des comptes au mot de passe connu n'ont rien à faire en production
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->warn('DemoUserSeeder ignoré hors local/testing.');
+
+            return;
+        }
+
+        User::firstOrCreate(
+            ['email' => 'admin@exemple.test'],
+            ['name' => 'Admin Démo', 'password' => Hash::make('password')]
+        )->syncRoles(['administrateur']);
+
+        User::firstOrCreate(
+            ['email' => 'utilisateur@exemple.test'],
+            ['name' => 'Utilisateur Démo', 'password' => Hash::make('password')]
+        )->syncRoles(['utilisateur']);
+    }
 }
 ```
 
@@ -72,7 +83,7 @@ php artisan db:seed --class=RoleSeeder
 php artisan db:seed --class=DemoUserSeeder
 ```
 
-**Un seeder doit pouvoir être rejoueable.** On esr souvent amené à relancer un seeder notement après un migrate:fresh. Il doit donc décrire impérativement décrire l’état final des données présent dans une table, pas une simple suite d'ajouts. On dit qu'il est idempotent.
+**Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
 
 Tests
 
@@ -84,7 +95,7 @@ php artisan db:seed --class=DemoUserSeeder
 
 permission:show affiche la matrice rôles × permissions. Le second lancement des seeders doit se terminer sans erreur. Copiez les deux sorties.
 
-**Test qui doivent passer :**
+**Tests qui doivent passer :**
 
 ```bash
 php artisan test --filter=test_les_seeders_sont_rejouables
@@ -94,22 +105,26 @@ php artisan test --filter=test_les_seeders_sont_rejouables
 
 ```php
 <?php
+
 namespace Database\Seeders;
+
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+
 class DatabaseSeeder extends Seeder
 {
-use WithoutModelEvents;
-/**
-* Seed the application's database.
-*/
-public function run(): void
-{
-$this->call([
-RoleSeeder::class,
-DemoUserSeeder::class,
-]);
-}
+    use WithoutModelEvents;
+
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        $this->call([
+            RoleSeeder::class,
+            DemoUserSeeder::class,
+        ]);
+    }
 }
 ```
 

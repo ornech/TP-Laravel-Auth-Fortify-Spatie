@@ -34,16 +34,17 @@ Vous saurez :
 
 Versions de référence:
 
-- Laravel Framework: 13.40.0 The.
+- Laravel Framework: 13.40.0
 - Fortify: 1.41.0
-- Spatie: 8.3.2
--
+- Spatie: 8.5.0
 
-**Règle d'or.** Quand un extrait montre un fichier qui existe déjà, vous **ajoutez** ce qui est indiqué. Vous ne remplacez jamais un fichier entier par un extrait : les fichiers générés contiennent des éléments dont l'application a besoin .
+**Règle d'or.** Quand un extrait montre un fichier qui existe déjà, vous **ajoutez** ce qui est indiqué. Vous ne remplacez jamais un fichier entier par un extrait : les fichiers générés contiennent des éléments dont l'application a besoin.
+
+**Vos preuves.** Créez à la racine de votre projet (tp-auth) un fichier PREUVES.md. Vous y copierez, étape après étape, les sorties de commandes et vos observations demandées dans les rubriques « Preuve » : c'est ce fichier que le bilan vous demande de relire.
 
 ## Rappel: Authentification, autorisation et codes HTTP
 
-Ce sont deux contrôles distincts, toujours dans cet ordre : d'abord « qui êtes-vous ? », et « avez-vous le droit ? ». Confondre les deux introduit une faille critique dans dans le contrôle d'accès de votre application.
+Ce sont deux contrôles distincts, toujours dans cet ordre : d'abord « qui êtes-vous ? », puis « avez-vous le droit ? ». Confondre les deux introduit une faille critique dans le contrôle d'accès de votre application.
 
 | Question | Qui êtes-vous ? | Avez-vous le droit de faire ceci ? |
 | --- | --- | --- |
@@ -53,16 +54,17 @@ Ce sont deux contrôles distincts, toujours dans cet ordre : d'abord « qui ête
 
 ![](images/rappel-auth-autorisation.png)
 
-Le contrôleur (ici AdminController) peut être atteint qu’après deux vérifications: l’identité, puis les droits :
+Le contrôleur (ici AdminController) ne peut être atteint qu’après deux vérifications : l’identité, puis les droits :
 
-- Un visiteur (non authentifié) est arrêté au premier contrôle (code erreur 302)
-- Un utilisateur authentifié au second (code erreur 403)
-- Seul un utilisateur qui a la permission pourra atteindre le controller.
+- Un visiteur (non authentifié) est arrêté au premier contrôle (redirection 302)
+- Un utilisateur authentifié est arrêté au second (erreur 403)
+- Seul un utilisateur qui a la permission pourra atteindre le contrôleur.
 
-**Les codes erreur HTTP courament rencontré:**
+**Les codes HTTP couramment rencontrés :**
 
-| 302 | Non authentifié | Un visiteur demande /dashboard |
+| Code | Signification | Exemple |
 | --- | --- | --- |
+| 302 | Redirection : non authentifié | Un visiteur demande /dashboard |
 | 403 | Authentifié, mais non autorisé | Un utilisateur demande /admin/users |
 | 405 | Méthode HTTP refusée par la route | GET /logout : la route n'accepte que POST |
 | 419 | Requête POST sans origine vérifiable ni jeton CSRF | Un POST /login envoyé avec curl |
@@ -70,7 +72,7 @@ Le contrôleur (ici AdminController) peut être atteint qu’après deux vérifi
 
 ## Livrables
 
-Voici ce qui est attendu en en terme de protection des routes. Ces cas devront être vérifiés par un test (étape 6).
+Voici ce qui est attendu en termes de protection des routes. Ces cas devront être vérifiés par un test (étape 6).
 
 | Route | Visiteur | Utilisateur | Administrateur |
 | --- | --- | --- | --- |
@@ -85,8 +87,9 @@ Fortify fait le travail d'authentification côté serveur, mais ne fournit aucun
 
 Qui fait quoi ?
 
-| Les routes (/login, /register, /logout…) et leurs contrôleurs | Les vues Blade des formulaires |
+| Fortify fournit | Vous décidez ou écrivez |
 | --- | --- |
+| Les routes (/login, /register, /logout…) et leurs contrôleurs | Les vues Blade des formulaires |
 | La vérification des identifiants et la session | Le choix des fonctionnalités actives, dans config/fortify.php |
 | La limitation des tentatives de connexion | La page d'arrivée après connexion (clé home) |
 | Des actions modifiables dans app/Actions/Fortify | Les règles métier, par exemple le rôle attribué à l'inscription |

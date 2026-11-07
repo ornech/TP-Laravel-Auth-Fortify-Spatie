@@ -24,9 +24,9 @@ Puis ajoutez cet appel **à l'intérieur** de la fonction déjà passée à with
 
 ```php
 $middleware->alias([
-'role' => RoleMiddleware::class,
-'permission' => PermissionMiddleware::class,
-'role_or_permission' => RoleOrPermissionMiddleware::class,
+    'role' => RoleMiddleware::class,
+    'permission' => PermissionMiddleware::class,
+    'role_or_permission' => RoleOrPermissionMiddleware::class,
 ]);
 ```
 
@@ -34,4 +34,4 @@ $middleware->alias([
 
 **Preuve** — la sortie de la commande ls (ou dir) ci-dessus.
 
-**Question 5.** Si vous n'aviez pas regardé dans vendor, comment auriez-vous découvert une faute dans le nom d'une classe de middleware ? Quel type de test l'aurait révélée ?
+**Question 4.** Si vous n'aviez pas regardé dans vendor, comment auriez-vous découvert une faute dans le nom d'une classe de middleware ? Quel type de test l'aurait révélée ?

@@ -7,7 +7,7 @@ Le package spatie/laravel-permission crée cinq tables en base via une migration
 | permissions | Catalogue des permissions (ex. edit posts, delete users). Clé unique : name + guard\_name. |
 | roles | Définition des rôles (ex. admin, editor). Chaque rôle regroupe un ensemble de permissions. |
 | role\_has\_permissions | Pivot N-to-N entre rôles et permissions : Un rôle contient quel droit ? |
-| model\_has\_roles | Pivot polymorphe : quel modèle (User, ApiClient…) a quel rôle. Colonnes : role\_id, model\_type, model\_morph\_key. |
+| model\_has\_roles | Pivot polymorphe : quel modèle (User, ApiClient…) a quel rôle. Colonnes : role\_id, model\_type, model\_id. |
 | model\_has\_permissions | Pivot polymorphe : permissions attribuées directement à un modèle, sans passer par un rôle (cas rare). |
 
 Pourquoi cette architecture ?
@@ -49,7 +49,7 @@ En PHP, une classe n’hérite que d’**une seule** classe parente. *User* hér
 
 Le **trait** contourne cette limite. C’est un bloc de méthodes que PHP recopie dans la classe qui l’utilise. En écrivant *use HasRoles;* dans *User*, le modèle reçoit *roles()*, *assignRole()*, *hasRole()*, *syncRoles()*, *givePermissionTo()*… sans qu’on réécrive une ligne.
 
-*can()*, lui, vient d’un autre trait (*Authorizable*), déjà présent dans *Authenticatable*. *HasRoles* ne l’ajoute pas : il le branche sur les permissions Spatie.
+*can()*, lui, vient d’un autre trait (*Authorizable*), déjà présent dans *Authenticatable* : *HasRoles* ne le remplace pas. C’est Spatie qui, au démarrage de l’application, déclare auprès de Laravel un contrôle supplémentaire (un *Gate::before*) : avant de répondre à *can()*, Laravel interroge les permissions Spatie du modèle, grâce aux méthodes que *HasRoles* apporte à *User*. Sans le trait *HasRoles*, *can()* ignore donc les permissions Spatie.
 
 Attention aux deux *use* : celui en haut du fichier **importe un nom** (permet d’écrire ***HasRoles*** au lieu de ***\\Spatie\\Permission\\Traits\\HasRoles***), celui dans la classe **inclut le trait** **à la classe User**.
 

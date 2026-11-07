@@ -12,6 +12,7 @@ Cochez une case seulement si la preuve correspondante figure dans PREUVES.md.
 - ☐ J'ai vérifié à la main les 12 cases de la matrice d'accès avec les trois profils
 - ☐ Je montre que /accueil affiche un contenu différent pour le visiteur, l'utilisateur et l'administrateur
 - ☐ Je provoque et j'explique 302, 403, 405, 419 et 429 sur mon application
+- ☐ (Bonus) J'ai écrit un test qui détecte une route /admin non protégée, et je l'ai vu échouer sur une route ajoutée hors du groupe
 
 Questions de restitution (à l'oral, sans notes)
 
@@ -25,3 +26,5 @@ Questions de restitution (à l'oral, sans notes)
 8. Que se passe-t-il si l'on remplace toute la méthode boot() de FortifyServiceProvider par les deux lignes de déclaration des vues ?
 9. Pourquoi la déconnexion est-elle en POST ?
 10. Un test vert prouve-t-il que le code est correct ? Appuyez-vous sur les exercices des étapes 4 et 6.
+
+**Limites du contrat.** Un test vert prouve ce qu'il vérifie, pas davantage. Les 23 tests du contrat resteraient verts si l'on : ajoutait une route /admin/export hors du groupe protégé, protégeait la page par role:administrateur au lieu de permission:gerer-utilisateurs, affichait le lien d'administration avec @role au lieu de @can, réactivait d'autres fonctionnalités de Fortify (modification du profil ou du mot de passe), comptait les tentatives de connexion par adresse IP seule, ou supprimait la garde d'environnement de DemoUserSeeder. Chacune de ces variantes a été essayée : aucune ne fait échouer le contrat. Savoir ce qu'un test ne couvre pas fait partie de la preuve.

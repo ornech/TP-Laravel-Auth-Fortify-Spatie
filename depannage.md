@@ -2,10 +2,12 @@
 
 Lisez d'abord le message d'erreur en entier : dans ce TP, il nomme presque toujours la cause.
 
-| 419 Page Expired | Requête POST sans origine vérifiable ni jeton : curl, autre site, ou formulaire sans @csrf hors HTTPS | Ajouter @csrf dans le \<form> |
+| Symptôme | Cause | Correction |
 | --- | --- | --- |
+| 419 Page Expired | Requête POST sans jeton ni en-tête Sec-Fetch-Site: same-origin : curl, autre site, ou formulaire sans @csrf dans un navigateur qui n'envoie pas cet en-tête | Ajouter @csrf dans le \<form> |
 | « View \[auth.login\] not found. » | Vue absente ou mal placée | Créer resources/views/auth/login.blade.php |
-| « View \[dashboard\] not found. » ou « View \[accueil\] not found. » | Vue non créée | Étape 6 |
+| « View \[dashboard\] not found. » | Vue non créée | Étape 3 |
+| « View \[accueil\] not found. » | Vue non créée | Étape 6 |
 | 404 juste après la connexion | La clé home pointe vers /home | 'home' => '/dashboard' dans config/fortify.php |
 | « Rate limiter \[login\] is not defined. » | boot() de FortifyServiceProvider écrasé | Restaurer RateLimiter::for('login', ...) |
 | « Target \[Laravel\\Fortify\\Contracts\\CreatesNewUsers\] is not instantiable. » | createUsersUsing supprimé de boot() | Restaurer Fortify::createUsersUsing(CreateNewUser::class) |
