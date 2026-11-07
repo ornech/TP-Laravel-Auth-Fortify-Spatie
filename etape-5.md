@@ -1,4 +1,4 @@
-# Étape 5 — Déclarer les middlewares de Spatie
+# Étape 5 : Déclarer les middlewares de Spatie
 
 À la fin de cette étape, les routes peuvent utiliser permission:…, role:… et role\_or\_permission:….
 

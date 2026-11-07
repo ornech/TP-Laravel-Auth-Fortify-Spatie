@@ -5,7 +5,7 @@ Cochez une case seulement si la preuve correspondante figure dans PREUVES.md.
 - ☐ php artisan test --filter=AuthRbacTest : les 23 tests sont verts
 - ☐ Je montre en base où est stocké le rôle d'un utilisateur, et j'explique pourquoi il n'existe pas de rôle « visiteur »
 - ☐ Je relance les seeders sans erreur, et j'explique pourquoi DemoUserSeeder ne s'exécute pas en production
-- ☐ Je montre avec route:list les routes exposées par Fortify, et je justifie chaque fonctionnalité active
+- ☐ Je montre avec route:list les routes exposées par Fortify, et je justifie chaque fonctionnalité active (et je sais pourquoi les routes confirm-password restent présentes)
 - ☐ J'ai vu l'injection de rôle réussir sur la version vulnérable, puis échouer sur la version sûre
 - ☐ J'ai vu le test d'injection passer au rouge sur la version vulnérable
 - ☐ J'ai retiré la protection de /admin, constaté l'accès, et identifié le cas de la matrice qui échoue

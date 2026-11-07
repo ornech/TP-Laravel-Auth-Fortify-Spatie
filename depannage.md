@@ -1,4 +1,4 @@
-# Mémo C — Dépannage
+# Dépannage
 
 Lisez d'abord le message d'erreur en entier : dans ce TP, il nomme presque toujours la cause.
 
@@ -11,6 +11,7 @@ Lisez d'abord le message d'erreur en entier : dans ce TP, il nomme presque toujo
 | 404 juste après la connexion | La clé home pointe vers /home | 'home' => '/dashboard' dans config/fortify.php |
 | « Rate limiter \[login\] is not defined. » | boot() de FortifyServiceProvider écrasé | Restaurer RateLimiter::for('login', ...) |
 | « Target \[Laravel\\Fortify\\Contracts\\CreatesNewUsers\] is not instantiable. » | createUsersUsing supprimé de boot() | Restaurer Fortify::createUsersUsing(CreateNewUser::class) |
+| « Target \[Laravel\\Fortify\\Contracts\\ConfirmPasswordViewResponse\] is not instantiable. » | Visite de /user/confirm-password : Fortify enregistre toujours cette route, et aucune vue n'est déclarée | Ne pas utiliser cette route, ou déclarer Fortify::confirmPasswordView(...) dans boot() |
 | « There is no role named \`utilisateur\` for guard \`web\`. » | Seeders non lancés, ou nom de rôle mal orthographié | php artisan db:seed --class=RoleSeeder, puis comparer les noms avec php artisan permission:show |
 | « A role \`utilisateur\` already exists for guard \`web\`. » | Role::create dans un seeder relancé | Role::findOrCreate |
 | « Target class \[permission\] does not exist. » | Alias non déclaré | Étape 5 |

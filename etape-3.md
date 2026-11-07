@@ -1,14 +1,16 @@
-# Étape 3: Installer Fortify
+# Étape 3 : Installer Fortify
 
 À la fin de cette étape, on sera en mesure de s'inscrire, de se connecter, de se déconnecter et l’on fera en sorte que Fortify n'expose que les routes dont l'application a besoin.
 
-**A faire**
+**Faire**
 
 ```bash
 composer require laravel/fortify
 php artisan fortify:install
 php artisan migrate
 ```
+
+Cette migration ajoute à la table users les colonnes de la double authentification (two\_factor\_\*) et crée une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
 
 ## Limitez le nombre de routes exposées
 
@@ -18,9 +20,9 @@ php artisan migrate
 php artisan route:list --only-vendor
 ```
 
-Copiez la sortie et notez le nombre de routes dans PREUVES.md.
+Copiez la sortie et notez le nombre de routes dans PREUVES.md. Avec Fortify 1.41, vous devez en compter 33. L'option --only-vendor liste toutes les routes qui viennent d'un package, pas seulement celles de Fortify : up (contrôle de santé) et storage/{path} en font partie.
 
-**A faire:** Dans config/fortify.php, ne gardez que l'inscription dans la liste des features. Commentez les autres lignes ; la liste exacte dépend de votre version de Fortify.
+**Faire :** Dans config/fortify.php, ne gardez que l'inscription dans la liste des features. Commentez les autres lignes ; la liste exacte dépend de votre version de Fortify.
 
 ```php
 'features' => [
@@ -34,6 +36,8 @@ Copiez la sortie et notez le nombre de routes dans PREUVES.md.
 ],
 ```
 
+Dans le fichier généré, twoFactorAuthentication([...]) et passkeys([...]) s'étendent sur plusieurs lignes. Commentez **toutes** les lignes de chaque entrée, jusqu'au ]), inclus (sélectionnez-les et utilisez Ctrl+/). Si vous ne commentez que la première, le fichier n'est plus du PHP valide et l'application plante.
+
 > [!NOTE]
 > **Mémo:** Chaque fonctionnalité (feature) activée est une route accessible et donc une surface d'attaque et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
 >
@@ -45,9 +49,15 @@ Copiez la sortie et notez le nombre de routes dans PREUVES.md.
 php artisan route:list --only-vendor
 ```
 
-Copiez la sortie et comparez le nombre de routes avec la preuve « avant ».
+Copiez la sortie et comparez le nombre de routes avec la preuve « avant ». Vous devez en compter 11 :
 
-**A faire: la page home**
+- 5 routes que ce TP utilise : GET et POST /login, POST /logout, GET et POST /register ;
+- 3 routes qui ne viennent pas de Fortify : up et storage/{path} (2 méthodes) ;
+- 3 routes de confirmation de mot de passe : user/confirm-password (GET et POST) et user/confirmed-password-status.
+
+Ces trois dernières ne dépendent d'aucune feature : Fortify les enregistre toujours. Le TP ne les utilise pas, et aucune vue n'est déclarée pour elles : une personne connectée qui demande GET /user/confirm-password obtient une erreur 500. Désactiver les features réduit donc la surface exposée, sans la ramener à zéro.
+
+**Faire : la page home**
 
 Dans config/fortify.php, la clé home vaut /home par défaut. Cette route n'existe pas dans votre application : sans modification, chaque connexion aboutira à une erreur 404.
 
@@ -61,7 +71,7 @@ La page /dashboard sera créée plus bas, dans cette étape.
 
 ## **Création de la vue de connexion**
 
-**A faire: déclarer les vues.**
+**Faire : déclarer les vues.**
 
 Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin de la méthode boot(). Ne supprimez rien de ce qui s'y trouve.
 
@@ -78,6 +88,8 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 > | Fortify::createUsersUsing(CreateNewUser::class) | L'inscription plante : Fortify ne sait plus quelle classe crée les comptes |
 > | RateLimiter::for('login', ...) | Toute connexion renvoie une 500 « Rate limiter \[login\] is not defined. » |
 > | RateLimiter::for('two-factor', ...) | Les routes de double authentification plantent, si cette fonctionnalité est active |
+>
+> Les autres lignes de boot() (updateUserProfileInformationUsing, updateUserPasswordsUsing, resetUserPasswordsUsing, redirectUserForTwoFactorAuthenticationUsing et le limiteur passkeys) servent aux fonctionnalités désactivées à cette étape. Elles ne gênent pas : laissez-les en place et ne supprimez rien.
 
 **Faire — la vue de connexion.** Créez resources/views/auth/login.blade.php à partir de ce modèle commenté :
 
@@ -201,7 +213,7 @@ La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côt
 
 ## **Création de la vue d'inscription**
 
-**A faire: Écrivez la vue d'inscription vous-même.** Créez le fichier resources/views/auth/register.blade.php sur le modèle de la connexion. Le formulaire envoie en POST vers route('register'), contient @csrf et affiche les erreurs.
+**Faire : écrivez la vue d'inscription vous-même.** Créez le fichier resources/views/auth/register.blade.php sur le modèle de la connexion. Le formulaire envoie en POST vers route('register'), contient @csrf et affiche les erreurs.
 
 | Libellé | Attribut name | Type |
 | --- | --- | --- |
@@ -212,11 +224,19 @@ La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côt
 
 Le nom password\_confirmation n'est pas libre : la règle de validation confirmed cherche un champ nommé \<champ>\_confirmation.
 
-Preuve
+**Preuve**
 
-1. Inscrivez un nouveau compte dans le navigateur. Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue.
+Lancez le serveur de développement dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C) :
+
+```bash
+php artisan serve
+```
+
+Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
+
+1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register. Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue.
 2. Retirez @csrf de la vue de connexion et connectez-vous dans le navigateur sur http://127.0.0.1:8000. Notez si la connexion fonctionne, remettez @csrf, puis déconnectez-vous.
-3. Envoyez la même requête sans navigateur, depuis un second terminal (php artisan serve doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=utilisateur@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne.
+3. Envoyez la même requête sans navigateur, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=utilisateur@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne.
 4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte admin@exemple.test. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (preuve 2), le blocage arriverait dès la cinquième tentative.
 
 **Tests qui doivent passer :** test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees, test\_le\_mot\_de\_passe\_doit\_etre\_confirme, test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs, test\_la\_deconnexion\_n\_accepte\_que\_post.

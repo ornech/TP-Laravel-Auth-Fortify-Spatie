@@ -1,4 +1,4 @@
-# Étape 0: Créer le projet et installer le contrat de tests
+# Étape 0 : Créer le projet et installer le contrat de tests
 
 **Faire**
 
@@ -19,7 +19,7 @@ Créez tests/Feature/AuthRbacTest.php et copiez-y le fichier donné dans la sect
 
 Ces tests s'appuient sur RefreshDatabase : la migration est exécutée une seule fois, puis chaque test tourne dans une transaction qui est annulée en fin de test, garantissant un état propre sans re-migrer. La base SQLite en mémoire (:memory:) est déjà configurée dans le phpunit.xml, donc aucun fichier n'est créé sur le disque.
 
-Preuve
+**Preuve**
 
 ```bash
 php artisan test --filter=AuthRbacTest

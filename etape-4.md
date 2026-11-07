@@ -1,4 +1,4 @@
-# Étape 4: Attribuer un rôle dès l'inscription (côté serveur)
+# Étape 4 : Attribuer un rôle dès l'inscription (côté serveur)
 
 Objectif : tout nouvel inscrit reçoit le rôle `utilisateur`, et un rôle envoyé par le client est ignoré.
 
@@ -61,9 +61,9 @@ public function store(Request $request)
 | `$request->only(['name','email'])` | Seulement ces champs (mais pas validés) | ⚠️ |
 | `$request->validated()` | **Seulement** les champs qui ont une règle et qui ont passé la validation | ✅ |
 
-### Form Request (la bonne pratique)
+### Pour aller plus loin : le Form Request (la bonne pratique)
 
-*Illustration : ce Form Request n'est pas utilisé dans ce TP. Avec Fortify, la validation et la création du compte passent par l'action `CreateNewUser` (voir plus bas). Le principe est exactement le même.*
+*Lecture facultative, vous pouvez passer directement à « La version sûre ». Ce Form Request n'est pas utilisé dans ce TP : avec Fortify, la validation et la création du compte passent par l'action `CreateNewUser` (voir plus bas). Le principe est exactement le même.*
 
 Plutôt que de valider dans le contrôleur, on crée une **classe Form Request** :
 
@@ -129,26 +129,26 @@ C'est exactement le principe de la variable `$data` dans `CreateNewUser`, ci-des
 Dans `app/Actions/Fortify/CreateNewUser.php`, remplacez la méthode `create()` par :
 
 ```php
-public function create(array $input): User
-{
-    // validate() ne renvoie QUE les champs déclarés dans les règles
-    $data = Validator::make($input, [
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
-        'password' => $this->passwordRules(),
-    ])->validate();
+    public function create(array $input): User
+    {
+        // validate() ne renvoie QUE les champs déclarés dans les règles
+        $data = Validator::make($input, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
+            'password' => $this->passwordRules(),
+        ])->validate();
 
-    $user = User::create([
-        'name' => $data['name'],
-        'email' => $data['email'],
-        'password' => Hash::make($data['password']),
-    ]);
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
 
-    // Le rôle est fixé en dur, jamais lu depuis la requête
-    $user->assignRole('utilisateur');
+        // Le rôle est fixé en dur, jamais lu depuis la requête
+        $user->assignRole('utilisateur');
 
-    return $user;
-}
+        return $user;
+    }
 ```
 
 **Pourquoi ça marche :** `$data` ne contient que `name`, `email`, `password`. Le champ `role` envoyé par le client est simplement **absent** de `$data`. Et le rôle est fixé en dur par le serveur.

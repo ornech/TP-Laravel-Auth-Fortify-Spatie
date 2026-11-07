@@ -1,4 +1,4 @@
-# Étape 2 — Créer les rôles, la permission et les comptes de démonstration
+# Étape 2 : Créer les rôles, la permission et les comptes de démonstration
 
 Deux seeders, deux responsabilités. RoleSeeder crée la structure des droits, utile partout, y compris en production. DemoUserSeeder crée deux comptes de démonstration, qui ne doivent jamais exister en production.
 
@@ -85,8 +85,10 @@ php artisan db:seed --class=DemoUserSeeder
 
 > [!NOTE]
 > **Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
+>
+> Ici, findOrCreate et firstOrCreate créent ce qui manque sans toucher à ce qui existe déjà, et syncPermissions et syncRoles imposent la liste exacte des permissions et des rôles. Un compte de démonstration déjà présent garde donc son nom et son mot de passe d'origine.
 
-Tests
+**Tests**
 
 ```bash
 php artisan permission:show
@@ -102,7 +104,7 @@ permission:show affiche la matrice rôles × permissions. Le second lancement de
 php artisan test --filter=test_les_seeders_sont_rejouables
 ```
 
-**Faire**. Dans database/seeders/DatabaseSeeder.php
+**Faire.** Dans database/seeders/DatabaseSeeder.php, **remplacez le contenu du fichier** par celui-ci (exception à la règle d'or, car le fichier généré n'est qu'un exemple). Le compte `test@example.com` qu'il créait n'aurait aucun rôle, et l'import de User devient inutile.
 
 ```php
 <?php
@@ -131,7 +133,7 @@ class DatabaseSeeder extends Seeder
 
 L’ordre compte : DemoUserSeeder attribue des rôles que RoleSeeder doit avoir créés.
 
-Preuve.
+**Preuve.**
 
 ```bash
 php artisan migrate:fresh --seed

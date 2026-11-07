@@ -13,7 +13,7 @@ Fortify + Spatie
 - [Étape 5 : Déclarer les middlewares de Spatie](etape-5.md)
 - [Étape 6 : Protéger les routes et créer les pages](etape-6.md)
 - [Contrat de tests](contrat-de-tests.md)
-- [Mémo C — Dépannage](depannage.md)
+- [Dépannage](depannage.md)
 - [Bilan — Je sais le prouver](bilan.md)
 
 # Présentation
@@ -38,7 +38,7 @@ Versions de référence:
 - Fortify: 1.41.0
 - Spatie: 8.5.0
 
-**Règle d'or.** Quand un extrait montre un fichier qui existe déjà, vous **ajoutez** ce qui est indiqué. Vous ne remplacez jamais un fichier entier par un extrait : les fichiers générés contiennent des éléments dont l'application a besoin.
+**Règle d'or.** Quand un extrait montre un fichier qui existe déjà, vous **ajoutez** ce qui est indiqué. Vous ne remplacez jamais un fichier entier par un extrait : les fichiers générés contiennent des éléments dont l'application a besoin. Les rares exceptions sont signalées dans l'énoncé.
 
 **Vos preuves.** Créez à la racine de votre projet (tp-auth) un fichier PREUVES.md. Vous y copierez, étape après étape, les sorties de commandes et vos observations demandées dans les rubriques « Preuve » : c'est ce fichier que le bilan vous demande de relire.
 

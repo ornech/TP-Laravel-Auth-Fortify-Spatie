@@ -1,10 +1,10 @@
-# Étape 6 — Protéger les routes et créer les pages
+# Étape 6 : Protéger les routes et créer les pages
 
 À la fin de cette étape, l'application respecte la matrice d'accès pour les trois profils. Un visiteur est renvoyé vers la connexion, un utilisateur reçoit une 403 sur l'administration, l'administrateur y accède. La page d'accueil affiche un contenu différent pour chaque profil.
 
 Le DashboardController, la route /dashboard et la déconnexion existent déjà (étape 3) : vous les complétez.
 
-Faire — le contrôleur d'administration.
+**Faire** — le contrôleur d'administration.
 
 ```bash
 php artisan make:controller AdminController
@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
 > **Mémo — Pourquoi auth d'abord.** Les middlewares s'exécutent dans l'ordre. Si permission passait avant auth, un visiteur recevrait une 403 « accès refusé » au lieu d'une invitation à se connecter. Le message serait faux, et l'utilisateur ne saurait pas quoi faire.
 
 > [!NOTE]
-> **Mémo — Pourquoi /login renvoie vers /dashboard.** La matrice annonce qu'une personne déjà connectée qui demande /login reçoit une 302 vers /dashboard. Ce n'est pas la clé home de Fortify qui décide : elle ne sert qu'après une connexion ou une inscription réussie. C'est le middleware guest de Laravel : il cherche une route **nommée** dashboard, puis home, et à défaut renvoie vers /. Cela fonctionne donc grâce au ->name('dashboard') de la route /dashboard. Si vous renommiez cette route, /login renverrait vers / et le test, qui ne vérifie que le code 302, resterait vert.
+> **Mémo — Pourquoi /login renvoie vers /dashboard.** La matrice annonce qu'une personne déjà connectée qui demande /login reçoit une 302 vers /dashboard. Ce n'est pas la clé home de Fortify qui décide : elle ne sert qu'après une connexion ou une inscription réussie. C'est le middleware guest de Laravel : il cherche d'abord une route **nommée** dashboard, puis home. À défaut, il cherche une route dont l'**URI** est /dashboard, puis /home, et sinon renvoie vers /. Votre route /dashboard répond aux deux critères : son nom et son URI. Pour que /login ne renvoie plus vers /dashboard, il faudrait changer les deux. Notez enfin que le test ne vérifie que le code 302 de /login, pas la destination de la redirection.
 
 **Faire — compléter le tableau de bord.** Dans resources/views/dashboard.blade.php (créé à l'étape 3), ajoutez ces lignes entre le titre `<h1>` et le formulaire de déconnexion :
 
@@ -119,14 +119,14 @@ Créez resources/views/admin/users.blade.php. Elle affiche un tableau des utilis
 
 **Tests qui doivent passer :** test\_la\_matrice\_d\_acces\_est\_respectee (12 cas, un par case de la matrice), test\_un\_visiteur\_est\_redirige\_vers\_la\_connexion, test\_la\_page\_d\_administration\_liste\_les\_utilisateurs, test\_l\_accueil\_s\_adapte\_au\_profil, test\_le\_lien\_d\_administration\_suit\_la\_permission. Le test de déconnexion a déjà été validé à l'étape 3.
 
-Exercice — masquer ou protéger ?
+**Exercice — masquer ou protéger ?**
 
 1. Retirez temporairement la protection : remplacez Route::middleware('permission:gerer-utilisateurs')->prefix('admin') par Route::prefix('admin').
 2. Connectez-vous avec utilisateur@exemple.test (mot de passe password). Le lien n'apparaît pas. Tapez /admin/users dans la barre d'adresse : que voyez-vous ?
 3. Lancez php artisan test --filter=AuthRbacTest. Quel cas de la matrice échoue ? PHPUnit affiche son nom.
 4. Remettez la protection. Tout redevient vert.
 
-Preuve
+**Preuve**
 
 ```bash
 php artisan route:list --path=admin -v

@@ -1,4 +1,4 @@
-# Étape 1: Installer Spatie et préparation du modèle User
+# Étape 1 : Installer Spatie et préparation du modèle User
 
 Le package spatie/laravel-permission crée cinq tables en base via une migration unique (2 tables de définition + 3 tables de liaison).
 
@@ -10,7 +10,7 @@ Le package spatie/laravel-permission crée cinq tables en base via une migration
 | model\_has\_roles | Pivot polymorphe : quel modèle (User, ApiClient…) a quel rôle. Colonnes : role\_id, model\_type, model\_id. |
 | model\_has\_permissions | Pivot polymorphe : permissions attribuées directement à un modèle, sans passer par un rôle (cas rare). |
 
-Pourquoi cette architecture ?
+**Pourquoi cette architecture ?**
 
 Les permissions ne sont pas stockées sur le modèle User, afin de permettre de réutiliser le même système pour n'importe quel modèle Eloquent (utilisateurs, API clients, service accounts…).
 
@@ -18,17 +18,17 @@ Le check ($user->can('edit posts')) vérifie à la fois les permissions directes
 
 Le tout est mis en cache : Spatie charge les permissions en mémoire à la première vérification et invalide le cache à chaque création/modification de rôle ou permission.
 
-En résumé (le flux)
+**En résumé (le flux)**
 
-User ──(model\_has\_roles)──► Role ──(role\_has\_permissions)──► Permission
-
-│
-
-└──(model\_has\_permissions)──► Permission (direct, rare)
+```text
+User ──(model_has_roles)──► Role ──(role_has_permissions)──► Permission
+  │
+  └──(model_has_permissions)──► Permission (direct, rare)
+```
 
 L'utilisateur hérite de toutes les permissions de ses rôles, plus celles qu'on lui a accordées directement. C'est le pattern RBAC classique, implémenté en N-to-N polymorphe pour rester découplé du modèle utilisateur.
 
-Faire
+**Faire**
 
 ```bash
 composer require spatie/laravel-permission
@@ -55,7 +55,7 @@ Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasR
 > [!WARNING]
 > Attention aux deux *use* : celui en haut du fichier **importe un nom** (permet d’écrire ***HasRoles*** au lieu de ***\\Spatie\\Permission\\Traits\\HasRoles***), celui dans la classe **inclut le trait** **à la classe User**.
 
-test
+**Test**
 
 ```bash
 php artisan db:table model_has_roles
