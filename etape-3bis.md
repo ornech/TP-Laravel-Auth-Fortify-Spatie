@@ -19,15 +19,15 @@ Navigateur                                                 Serveur Laravel
 
 Le serveur de développement (étape 3) doit tourner, et vous devez être déconnecté.
 
-**Faire — 1. Le mot de passe en base.**
+**Observation 1 — Le mot de passe en base.**
 
 ```bash
 php artisan tinker --execute="dump(DB::table('users')->get(['id', 'email', 'password']));"
 ```
 
-La colonne `password` contient un **hash** bcrypt (60 caractères, qui commence par `$2y$`), jamais le mot de passe. À la connexion, Laravel vérifie le mot de passe saisi contre ce hash : on ne « déchiffre » jamais le hash. Les deux comptes ont le même mot de passe (`password`) et pourtant des hashes différents : chaque hash contient son propre sel.
+La colonne `password` contient un **hash** bcrypt (60 caractères, qui commence par `$2y$`), jamais le mot de passe. À la connexion, Laravel vérifie le mot de passe saisi contre ce hash : on ne « déchiffre » jamais le hash. Les deux comptes de démonstration ont le même mot de passe (`password`) et pourtant des hashes différents : chaque hash contient son propre sel.
 
-**Faire — 2. Ce que le serveur remet à un nouveau visiteur.**
+**Observation 2 — Ce que le serveur remet à un nouveau visiteur.**
 
 ```bash
 curl -I http://127.0.0.1:8000/login
@@ -38,7 +38,7 @@ Sous Windows PowerShell, tapez `curl.exe`. L'option `-I` n'affiche que les en-t�
 - `laravel-session` : le cookie de session. Sa valeur est chiffrée et ne contient aucune information sur vous (ni nom, ni rôle) : seulement de quoi retrouver votre session sur le serveur. L'attribut `httponly` interdit à JavaScript de le lire.
 - `XSRF-TOKEN` : un second cookie, lié à la protection CSRF.
 
-**Faire — 3. La session d'un visiteur.** Videz d'abord la table des sessions (cela déconnecte tout le monde, c'est voulu) :
+**Observation 3 — La session d'un visiteur.** Videz d'abord la table des sessions (cela déconnecte tout le monde, c'est voulu) :
 
 ```bash
 php artisan tinker --execute="DB::table('sessions')->truncate();"
@@ -52,7 +52,7 @@ php artisan tinker --execute="dump(DB::table('sessions')->get(['id', 'user_id'])
 
 Vous devez voir **une seule ligne**, avec `user_id` vide : un visiteur a déjà une session, que Laravel crée dès la première visite. Notez le début de son `id`. Si plusieurs lignes apparaissent, d'autres onglets ou d'autres clients (`curl`) ont visité le site : fermez-les, videz la table et rechargez /login.
 
-**Faire — 4. La connexion.** Connectez-vous avec utilisateur@exemple.test (mot de passe password), puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, dont `user_id` vaut l'identifiant de utilisateur@exemple.test (colonne `id` de l'étape 1) et dont l'`id` a **changé** : à la connexion, Laravel renouvelle l'identifiant de session.
+**Observation 4 — La connexion.** Connectez-vous avec utilisateur@exemple.test (mot de passe password), puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, dont `user_id` vaut l'identifiant de utilisateur@exemple.test (colonne `id` de l'observation 1) et dont l'`id` a **changé** : à la connexion, Laravel renouvelle l'identifiant de session.
 
 Facultatif : voir ce que la session retient.
 
@@ -62,7 +62,7 @@ php artisan tinker --execute="dump(json_decode(base64_decode(DB::table('sessions
 
 On y trouve le jeton CSRF (`_token`, celui que `@csrf` place dans les formulaires, étape 3) et une clé qui commence par `login_web_`, dont la valeur est l'identifiant de l'utilisateur : c'est cette donnée qui signifie « connecté ».
 
-**Faire — 5. La déconnexion.** Cliquez sur « Se déconnecter », puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, avec `user_id` vide et un nouvel `id` : la session de l'utilisateur a été détruite côté serveur, et un cookie copié avant la déconnexion ne mène plus nulle part.
+**Observation 5 — La déconnexion.** Cliquez sur « Se déconnecter », puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, avec `user_id` vide et un nouvel `id` : la session de l'utilisateur a été détruite côté serveur, et un cookie copié avant la déconnexion ne mène plus nulle part.
 
 > [!NOTE]
 > **Mémo — « Rester connecté ».** Si la case est cochée, Laravel pose en plus un cookie `remember_web_…`, valable plus d'un an, et enregistre un jeton dans la colonne `users.remember_token`. Il permet de rouvrir une session une fois la précédente expirée (120 minutes d'inactivité par défaut, réglage `SESSION_LIFETIME`).
