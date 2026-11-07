@@ -14,13 +14,7 @@ Cette migration ajoute à la table users les colonnes de la double authentificat
 
 ## Limitez le nombre de routes exposées
 
-**Avant ...**
-
-```bash
-php artisan route:list --only-vendor
-```
-
-Copiez la sortie et notez le nombre de routes dans PREUVES.md. Avec Fortify 1.41, vous devez en compter 33. L'option --only-vendor liste toutes les routes qui viennent d'un package, pas seulement celles de Fortify : up (contrôle de santé) et storage/{path} en font partie.
+Une fois installé, Fortify expose environ trente routes : réinitialisation de mot de passe, double authentification, passkeys, modification du profil… Ce TP n'en utilise que quelques-unes.
 
 **Faire :** Dans config/fortify.php, ne gardez que l'inscription dans la liste des features. Commentez les autres lignes ; la liste exacte dépend de votre version de Fortify.
 
@@ -43,19 +37,13 @@ Dans le fichier généré, twoFactorAuthentication([...]) et passkeys([...]) s'�
 >
 > **Règle : on n'active que ce qu'on utilise et qu'on a testé.**
 
-**Après ...**
+**Vérifier**
 
 ```bash
 php artisan route:list --only-vendor
 ```
 
-Copiez la sortie et comparez le nombre de routes avec la preuve « avant ». Vous devez en compter 11 :
-
-- 5 routes que ce TP utilise : GET et POST /login, POST /logout, GET et POST /register ;
-- 3 routes qui ne viennent pas de Fortify : up et storage/{path} (2 méthodes) ;
-- 3 routes de confirmation de mot de passe : user/confirm-password (GET et POST) et user/confirmed-password-status.
-
-Ces trois dernières ne dépendent d'aucune feature : Fortify les enregistre toujours. Le TP ne les utilise pas, et aucune vue n'est déclarée pour elles : une personne connectée qui demande GET /user/confirm-password obtient une erreur 500. Désactiver les features réduit donc la surface exposée, sans la ramener à zéro.
+Copiez la sortie dans PREUVES.md. Vous devez y retrouver les routes que ce TP utilise : GET et POST /login, POST /logout, GET et POST /register. Les autres lignes ne sont pas des fonctionnalités que vous avez activées : up (contrôle de santé) et storage/{path} viennent de Laravel, et les trois routes user/confirm-password et user/confirmed-password-status viennent de Fortify, qui les enregistre toujours. Le TP ne les utilise pas et aucune vue n'est déclarée pour elles : une personne connectée qui demande GET /user/confirm-password obtient une erreur 500. Désactiver les features réduit donc la surface exposée, sans la ramener à zéro.
 
 **Faire : la page home**
 
@@ -242,3 +230,5 @@ Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
 **Tests qui doivent passer :** test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees, test\_le\_mot\_de\_passe\_doit\_etre\_confirme, test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs, test\_la\_deconnexion\_n\_accepte\_que\_post.
 
 **Question 2.** Le limiteur de boot() compte les tentatives par couple « e-mail + adresse IP ». Quel problème poserait un comptage par adresse IP seule dans un lycée où tous les postes sortent par la même IP ? Quelle attaque ce couple ne bloque-t-il pas ?
+
+Suite : l'étape 3 bis regarde ce qui s'est passé dans la base et dans les cookies pendant ces connexions.

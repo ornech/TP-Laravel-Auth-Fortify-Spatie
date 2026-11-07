@@ -9,6 +9,7 @@ Fortify + Spatie
 - [Étape 1 : Installer Spatie et préparation du modèle User](etape-1.md)
 - [Étape 2 : Créer les rôles, la permission et les comptes de démonstration](etape-2.md)
 - [Étape 3 : Installer Fortify](etape-3.md)
+- [Étape 3 bis : Comprendre la connexion : la session](etape-3bis.md)
 - [Étape 4 : Attribuer un rôle dès l'inscription (côté serveur)](etape-4.md)
 - [Étape 5 : Déclarer les middlewares de Spatie](etape-5.md)
 - [Étape 6 : Protéger les routes et créer les pages](etape-6.md)
@@ -23,12 +24,13 @@ Fortify + Spatie
 Vous saurez :
 
 1. Mettre en place l'authentification avec Laravel Fortify, sans interface fournie, en n'exposant que les fonctionnalités utiles.
-2. Distinguer trois profils : visiteur (non connecté), utilisateur (connecté, droits limités) et administrateur.
-3. Modéliser les rôles utilisateur et administrateur avec spatie/laravel-permission, et protéger des routes par permission.
-4. Adapter le contenu d'une vue au profil de la personne qui la consulte.
-5. Attribuer un rôle côté serveur, et démontrer qu'un rôle injecté par le client est ignoré.
-6. Expliquer et provoquer les réponses 302, 403, 405, 419 et 429 de votre application.
-7. Faire passer des tests qui servent de preuve, et vérifier qu'ils détectent bien une faille.
+2. Expliquer ce qui rend un utilisateur « connecté » : une session enregistrée côté serveur et un cookie côté navigateur, et le montrer dans la base.
+3. Distinguer trois profils : visiteur (non connecté), utilisateur (connecté, droits limités) et administrateur.
+4. Modéliser les rôles utilisateur et administrateur avec spatie/laravel-permission, et protéger des routes par permission.
+5. Adapter le contenu d'une vue au profil de la personne qui la consulte.
+6. Attribuer un rôle côté serveur, et démontrer qu'un rôle injecté par le client est ignoré.
+7. Expliquer et provoquer les réponses 302, 403, 405, 419 et 429 de votre application.
+8. Faire passer des tests qui servent de preuve, et vérifier qu'ils détectent bien une faille.
 
 **Contexte.** Vous partez d'un dossier vide et créez un projet Laravel 13 neuf à l'étape 0. Prérequis : PHP 8.3 ou plus récent, Composer, Git, et l'extension PHP pdo\_sqlite.
 

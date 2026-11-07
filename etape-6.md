@@ -121,7 +121,7 @@ Créez resources/views/admin/users.blade.php. Elle affiche un tableau des utilis
 
 **Exercice — masquer ou protéger ?**
 
-Cet exercice et la vérification à la main de la matrice (plus bas) utilisent le navigateur : le serveur de développement doit tourner. S'il est arrêté, relancez php artisan serve dans un terminal dédié.
+Cet exercice et l'observation de /accueil (plus bas) utilisent le navigateur : le serveur de développement doit tourner. S'il est arrêté, relancez php artisan serve dans un terminal dédié.
 
 1. Retirez temporairement la protection : remplacez Route::middleware('permission:gerer-utilisateurs')->prefix('admin') par Route::prefix('admin').
 2. Connectez-vous avec utilisateur@exemple.test (mot de passe password). Le lien n'apparaît pas. Tapez /admin/users dans la barre d'adresse : que voyez-vous ?
@@ -134,7 +134,9 @@ Cet exercice et la vérification à la main de la matrice (plus bas) utilisent l
 php artisan route:list --path=admin -v
 ```
 
-L'option -v affiche les middlewares de chaque route. Copiez la sortie et vos observations des points 2 et 3. Vérifiez enfin à la main les 12 cases de la matrice d'accès avec les trois profils (fenêtre de navigation privée pour le visiteur), et notez ce qu'affiche /accueil pour chacun.
+L'option -v affiche les middlewares de chaque route. Copiez la sortie et vos observations des points 2 et 3.
+
+Le test de la matrice a déjà vérifié les 12 cases : inutile de les refaire à la main. Il reste à voir ce que la matrice donne à l'écran. Ouvrez /accueil en visiteur (fenêtre de navigation privée), puis connecté avec utilisateur@exemple.test, puis avec admin@exemple.test (déconnectez-vous entre les deux), et notez ce qu'affiche la page pour chacun.
 
 **Question 5.** Un collègue ajoute demain une route /admin/export en dehors du groupe protégé. Qu'est-ce qui empêcherait cette erreur de passer inaperçue ?
 
