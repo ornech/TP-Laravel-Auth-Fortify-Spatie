@@ -1,0 +1,23 @@
+# Informations de la page de garde des PDF et de leurs propriétés (auteur, sujet, mots-clés…).
+# Le numéro de version, le commit et la date ne se saisissent pas ici : ils viennent de Git
+# (le dernier tag « vX.Y », voir outils/README.md).
+
+[auteur]
+nom = "Jean-François ORNECH"
+fonction = "Enseignant"
+
+[document]
+public = "BTS SIO option SLAM, 2ᵉ année"
+depot = "https://github.com/ornech/TP-Laravel-Auth-Fortify-Spatie"
+mots_cles = "Laravel, Fortify, Spatie, authentification, autorisation, session, rôles, permissions, BTS SIO, SLAM"
+
+[licence]
+nom = "CC BY-NC-SA 4.0"
+url = "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr"
+resume = "Attribution, pas d'utilisation commerciale, partage dans les mêmes conditions"
+
+[ia]
+# Cette mention figure sur la page de garde des PDF ET dans le README racine (une vérification
+# du workflow contrôle que les deux textes sont identiques).
+titre = "Assistance de l'IA"
+mention = """Ce document a été conçu et validé par son auteur, avec l'assistance de l'IA Claude (Anthropic) : rejeu des scénarios, pertinence des tests, relecture et rédaction de compléments."""

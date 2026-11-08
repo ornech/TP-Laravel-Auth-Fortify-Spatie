@@ -4,3 +4,6 @@ corrige.md
 
 # PDF générés en local (ceux du dépôt sont produits par le workflow GitHub Actions)
 pdf/
+
+# Fichiers temporaires de Python
+__pycache__/

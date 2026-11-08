@@ -1,16 +1,27 @@
 #!/usr/bin/env python3
 """Garde-fou : vérifie les PDF générés (signets, liens internes, contenu interdit, images).
 
+Contrôle aussi la page de garde (auteur, licence, mention de l'IA, version) et les propriétés du PDF.
+
 Usage : python3 outils/verifier_pdf.py [dossier_du_depot] [dossier_des_pdf]
 Code de sortie 1 si une vérification échoue.
 """
 import re, sys, pathlib, warnings
 from pypdf import PdfReader
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import _commun  # configuration et informations Git
+
 warnings.filterwarnings("ignore")
 REPO = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 PDFS = pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else REPO / "pdf").resolve()
 TPS = ["tp1-authentification", "tp2-autorisation"]
+META = _commun.charger_metadonnees(REPO)
+GIT = _commun.infos_git(REPO)
+
+
+def normaliser(t):
+    return " ".join(t.split())
 INTERDITS = ["[!NOTE]", "[!WARNING]", "Mémo —", "corrige", "corrigé", "AuthRbacTest"]  # le corrigé ne doit jamais fuiter
 
 erreurs = []
@@ -93,7 +104,31 @@ for tp in TPS:
     if imgs < images_attendues(tp):
         ko(tp, f"{imgs} image(s) dans le PDF, {images_attendues(tp)} attendue(s)")
 
+    # --- propriétés du PDF (auteur, titre, sujet, mots-clés)
+    props = r.metadata or {}
+    if props.get("/Author") != META["auteur"]["nom"]:
+        ko(tp, f"propriété Auteur incorrecte : {props.get('/Author')!r}")
+    for cle in ("/Title", "/Subject", "/Keywords"):
+        if not props.get(cle):
+            ko(tp, f"propriété {cle[1:]} vide")
+
+    # --- page de garde : auteur, licence, mention de l'IA, commit (et version si un tag existe)
+    garde = normaliser(r.pages[0].extract_text())
+    attendus = [META["auteur"]["nom"], META["licence"]["nom"], GIT["court"], normaliser(META["ia"]["mention"])]
+    if GIT["tag"]:
+        attendus.append(GIT["tag"])
+    for a in attendus:
+        if a not in garde:
+            ko(tp, f"page de garde : « {a[:50]}… » introuvable")
+    # --- pied de page : le commit figure sur les pages courantes
+    if pages > 3 and GIT["court"] not in normaliser(r.pages[2].extract_text()):
+        ko(tp, "pied de page : commit absent")
+
     print(f"{tp}.pdf : {pages} pages, {len(titres)} signets, {internes} liens internes, {imgs} image(s)")
+
+# --- la mention de l'IA du README racine doit être identique à celle de la page de garde
+if normaliser(META["ia"]["mention"]) not in normaliser((REPO / "README.md").read_text(encoding="utf-8")):
+    erreurs.append("README.md: la mention de l'IA est absente ou différente de celle de outils/metadonnees.toml")
 
 if erreurs:
     print("\nÉCHEC :", *erreurs, sep="\n  - ")

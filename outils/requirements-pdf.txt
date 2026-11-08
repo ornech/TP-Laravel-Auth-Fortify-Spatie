@@ -3,3 +3,4 @@ weasyprint==70.0
 markdown-it-py==4.2.0
 Pygments==2.21.0
 pypdf==7.0.0
+tomli>=2.0; python_version < "3.11"  # lecture de metadonnees.toml avec Python 3.10

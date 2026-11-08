@@ -18,6 +18,9 @@ from pygments.lexers import get_lexer_by_name, TextLexer
 from pygments.formatters import HtmlFormatter
 from weasyprint import HTML, CSS
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import _commun  # configuration, informations Git, versions de référence
+
 REPO = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 OUT = pathlib.Path(sys.argv[2] if len(sys.argv) > 2 else REPO / "pdf").resolve()
 
@@ -68,7 +71,7 @@ def fichiers_du_tp(tp):
     return [d / "README.md", *etapes, *[d / f for f in FIN]]
 
 
-def convertir(tp, titre_tp):
+def convertir(tp, titre_tp, meta, git, versions):
     d = REPO / tp
     files = fichiers_du_tp(tp)
     ids = {f.name: "ch-" + fold(f.stem) for f in files}  # README.md -> ch-readme
@@ -146,10 +149,34 @@ def convertir(tp, titre_tp):
     sommaire = "".join(
         f'<li class="niv{n}"><a href="#{ident}">{html.escape(txt)}</a></li>' for n, txt, ident in toc
     )
+    e = html.escape
+    aut, doc_m, lic, ia = meta["auteur"], meta["document"], meta["licence"], meta["ia"]
+    version = _commun.libelle_version(git) + (" (modifications locales non commitées)" if git["modifie"] else "")
+    lien_commit = f'{doc_m["depot"]}/commit/{git["sha"]}' if git["sha"] else doc_m["depot"]
+    ligne = lambda k, v: f"<tr><th>{k}</th><td>{v}</td></tr>"
+    infos = "".join([
+        ligne("Auteur", f'{e(aut["nom"])}, {e(aut["fonction"].lower())}'),
+        ligne("Public visé", e(doc_m["public"])),
+        ligne("Version", e(version)),
+        ligne("Commit", f'<a href="{e(lien_commit)}">{e(git["court"])}</a>, le {e(git["date_fr"])}'),
+        ligne("Versions de référence", e(" · ".join(versions))),
+        ligne("Dépôt", f'<a href="{e(doc_m["depot"])}">{e(doc_m["depot"])}</a>'),
+        ligne("Licence", f'<a href="{e(lic["url"])}">{e(lic["nom"])}</a> : {e(lic["resume"])}'),
+    ])
     date = datetime.date.today().strftime("%d/%m/%Y")
-    doc = f"""<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>{html.escape(titre_tp)}</title></head><body>
-<section class="couverture"><h1 class="titre-doc" style="bookmark-level:none">{html.escape(titre_tp)}</h1>
-<p class="sous-titre">Authentification et autorisation avec Laravel 13</p><p class="date">Document généré le {date}</p></section>
+    description = f"{titre_tp}" + (f". Version {git['tag']}" if git["tag"] and git["distance"] == 0 else "") + f". Commit {git['court']}, {git['date_fr']}."
+    metas = f"""<meta name="author" content="{e(aut['nom'])}">
+<meta name="description" content="{e(description)}">
+<meta name="keywords" content="{e(doc_m['mots_cles'])}">
+<meta name="generator" content="WeasyPrint, outils/generer_pdf.py (commit {e(git['court'])})">
+<meta name="dcterms.created" content="{e(git['date_iso'])}">"""
+    doc = f"""<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>{e(titre_tp)}</title>
+{metas}</head><body>
+<section class="couverture"><p class="serie">Authentification et autorisation avec Laravel 13</p>
+<h1 class="titre-doc" style="bookmark-level:none">{e(titre_tp)}</h1>
+<table class="infos">{infos}</table>
+<blockquote class="alert note"><p class="alert-titre">{e(ia["titre"])}</p><p>{e(ia["mention"])}</p></blockquote>
+<p class="date">PDF généré le {date}</p></section>
 <section class="sommaire"><h1 style="bookmark-level:none">Sommaire</h1><nav class="toc"><ul>{sommaire}</ul></nav></section>
 {''.join(chapitres)}
 </body></html>"""
@@ -159,8 +186,9 @@ def convertir(tp, titre_tp):
 CSS_TEXTE = """
 @page { size: A4; margin: 20mm 17mm 20mm 17mm;
   @bottom-center { content: counter(page) " / " counter(pages); font-size: 8pt; color: #666; }
+  @bottom-left { content: "__PIED__"; font-size: 8pt; color: #666; }
   @top-right { content: string(chapitre); font-size: 8pt; color: #666; } }
-@page :first { @top-right { content: none; } @bottom-center { content: none; } }
+@page :first { @top-right { content: none; } @bottom-center { content: none; } @bottom-left { content: none; } }
 html { font-family: "Liberation Sans", "DejaVu Sans", sans-serif; font-size: 10pt; line-height: 1.45; color: #1f2328; }
 h1 { font-size: 20pt; margin: 0 0 10pt; border-bottom: 2px solid #d0d7de; padding-bottom: 4pt; string-set: chapitre content(text); }
 h2 { font-size: 14pt; margin: 16pt 0 6pt; border-bottom: 1px solid #d0d7de; padding-bottom: 2pt; }
@@ -176,8 +204,12 @@ blockquote.alert { background: #f6f8fa; break-inside: avoid; color: #1f2328; }
 blockquote.note { border-left-color: #0969da; background: #ddf4ff; } blockquote.warning { border-left-color: #bf8700; background: #fff8c5; }
 .alert-titre { font-weight: bold; margin: 2pt 0; } blockquote.note .alert-titre { color: #0969da; } blockquote.warning .alert-titre { color: #9a6700; }
 img { max-width: 100%; }
-.chapitre { break-before: page; } .couverture { text-align: center; padding-top: 70mm; }
-.titre-doc { font-size: 26pt; border: none; string-set: none; } .sous-titre { font-size: 13pt; color: #444; } .date { color: #666; margin-top: 40mm; }
+.chapitre { break-before: page; } .couverture { padding-top: 28mm; }
+.serie { color: #57606a; font-size: 12pt; margin: 0 0 4pt; text-transform: uppercase; letter-spacing: 1pt; }
+.titre-doc { font-size: 27pt; border: none; string-set: none; margin: 0 0 16mm; }
+table.infos { width: 100%; font-size: 10pt; margin: 0 0 8mm; }
+table.infos th { width: 33%; text-align: left; background: #f6f8fa; } .couverture blockquote.alert { font-size: 9.5pt; }
+.date { color: #666; margin-top: 12mm; font-size: 9pt; }
 .sommaire { break-before: page; } nav.toc ul { list-style: none; padding: 0; margin: 0; }
 nav.toc li { margin: 2pt 0; } nav.toc li.niv1 { margin-top: 8pt; font-weight: bold; } nav.toc li.niv2 { margin-left: 14pt; font-size: 9pt; }
 nav.toc a { color: #1f2328; } nav.toc a::after { content: leader('.') target-counter(attr(href), page); font-weight: normal; }
@@ -187,10 +219,17 @@ ul, ol { margin: 4pt 0; padding-left: 18pt; } li { margin: 1pt 0; }
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     pyg_css = HtmlFormatter().get_style_defs("pre.code")
+    meta = _commun.charger_metadonnees(REPO)
+    git = _commun.infos_git(REPO)
+    versions = _commun.versions_reference(REPO)
+    print(f"version : {_commun.libelle_version(git)} · commit {git['court']} · {git['date_fr']}")
     for tp, titre in TPS.items():
-        doc, base, ext = convertir(tp, titre)
+        doc, base, ext = convertir(tp, titre, meta, git, versions)
         pdf = OUT / f"{tp}.pdf"
-        HTML(string=doc, base_url=str(base) + "/").write_pdf(str(pdf), stylesheets=[CSS(string=CSS_TEXTE + pyg_css)])
+        court = titre.split(":")[0].strip()  # « TP 1 »
+        pied = " · ".join(x for x in (court, _commun.version_courte(git), git["court"]) if x)
+        css = CSS_TEXTE.replace("__PIED__", pied.replace("\\", "\\\\").replace('"', '\\"'))
+        HTML(string=doc, base_url=str(base) + "/").write_pdf(str(pdf), stylesheets=[CSS(string=css + pyg_css)])
         print(f"{pdf}  ({pdf.stat().st_size // 1024} Ko, {ext} lien(s) externe(s))")
     graves = [m for m in COLLECTEUR.messages if re.search(r"anchor|image|failed|not found|URL", m, re.I)]
     autres = [m for m in COLLECTEUR.messages if m not in graves]
