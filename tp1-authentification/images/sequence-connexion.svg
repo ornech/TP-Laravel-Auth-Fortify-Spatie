@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1030" height="825" viewBox="0 0 1030 825" font-family="DejaVu Sans, Liberation Sans, Arial, sans-serif" fill="#24292f">
+<defs>
+<marker id="fleche" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#24292f"/></marker>
+<marker id="ouverte" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#24292f" stroke-width="1.5"/></marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="515.0" y="34" font-size="15" font-weight="bold" text-anchor="middle">Connexion : comment le serveur reconnaît la personne</text>
+<line x1="135.0" y1="108" x2="135.0" y2="785" stroke="#8c959f" stroke-width="1.2" stroke-dasharray="6,5"/>
+<rect x="40.0" y="68" width="190" height="40" rx="5" fill="#ddf4ff" stroke="#0969da" stroke-width="1.4"/>
+<text x="135.0" y="92.0" font-size="13" font-weight="bold" text-anchor="middle">Navigateur</text>
+<line x1="515.0" y1="108" x2="515.0" y2="785" stroke="#8c959f" stroke-width="1.2" stroke-dasharray="6,5"/>
+<rect x="420.0" y="68" width="190" height="40" rx="5" fill="#ddf4ff" stroke="#0969da" stroke-width="1.4"/>
+<text x="515.0" y="92.0" font-size="13" font-weight="bold" text-anchor="middle">Serveur Laravel (Fortify)</text>
+<line x1="895.0" y1="108" x2="895.0" y2="785" stroke="#8c959f" stroke-width="1.2" stroke-dasharray="6,5"/>
+<path d="M800.0,75 v26 a95.0,7 0 0 0 190,0 v-26 a95.0,7 0 0 0 -190,0 z" fill="#f6f8fa" stroke="#57606a" stroke-width="1.4"/>
+<path d="M800.0,75 a95.0,7 0 0 0 190,0" fill="none" stroke="#57606a" stroke-width="1.4"/>
+<text x="895.0" y="96.0" font-size="13" font-weight="bold" text-anchor="middle">Base de données</text>
+<line x1="20.0" y1="140" x2="1010.0" y2="140" stroke="#8c959f" stroke-width="1" stroke-dasharray="2,3"/>
+<rect x="411.3" y="128" width="207.4" height="24" rx="4" fill="#eaeef2" stroke="#8c959f"/>
+<text x="515.0" y="145" font-size="12" font-weight="bold" text-anchor="middle">1. La personne se connecte</text>
+<text x="325.0" y="185" font-size="12" text-anchor="middle">POST /login (e-mail + mot de passe)</text>
+<line x1="135.0" y1="197" x2="515.0" y2="197" stroke="#24292f" stroke-width="1.4" marker-end="url(#fleche)"/>
+<text x="705.0" y="232" font-size="12" text-anchor="middle">lit le compte (table users)</text>
+<line x1="515.0" y1="244" x2="895.0" y2="244" stroke="#24292f" stroke-width="1.4" marker-end="url(#fleche)"/>
+<text x="705.0" y="279" font-size="12" text-anchor="middle">le compte et le hash de son mot de passe</text>
+<line x1="895.0" y1="291" x2="515.0" y2="291" stroke="#24292f" stroke-width="1.4" stroke-dasharray="7,5" marker-end="url(#ouverte)"/>
+<path d="M515.0,315 h46 v18 h-46" fill="none" stroke="#24292f" stroke-width="1.4" marker-end="url(#fleche)"/>
+<text x="569.0" y="327" font-size="12">vérifie le mot de passe saisi contre le hash</text>
+<text x="705.0" y="374" font-size="12" text-anchor="middle">renouvelle la session et y inscrit l'utilisateur</text>
+<text x="705.0" y="389" font-size="12" text-anchor="middle">(table sessions)</text>
+<line x1="515.0" y1="401" x2="895.0" y2="401" stroke="#24292f" stroke-width="1.4" marker-end="url(#fleche)"/>
+<text x="325.0" y="436" font-size="12" text-anchor="middle">302 vers /dashboard + Set-Cookie: laravel-session</text>
+<line x1="515.0" y1="448" x2="135.0" y2="448" stroke="#24292f" stroke-width="1.4" stroke-dasharray="7,5" marker-end="url(#ouverte)"/>
+<rect x="135.0" y="472" width="380.0" height="44" fill="#fff8c5" stroke="#bf8700" rx="3"/>
+<text x="325.0" y="490" font-size="12" text-anchor="middle">Le cookie ne contient qu'un identifiant de session,</text>
+<text x="325.0" y="505" font-size="12" text-anchor="middle">aucune donnée sur la personne.</text>
+<line x1="20.0" y1="548" x2="1010.0" y2="548" stroke="#8c959f" stroke-width="1" stroke-dasharray="2,3"/>
+<rect x="369.9" y="536" width="290.2" height="24" rx="4" fill="#eaeef2" stroke="#8c959f"/>
+<text x="515.0" y="553" font-size="12" font-weight="bold" text-anchor="middle">2. La personne ouvre une page protégée</text>
+<text x="325.0" y="593" font-size="12" text-anchor="middle">GET /dashboard + Cookie: laravel-session</text>
+<line x1="135.0" y1="605" x2="515.0" y2="605" stroke="#24292f" stroke-width="1.4" marker-end="url(#fleche)"/>
+<text x="705.0" y="640" font-size="12" text-anchor="middle">lit la session désignée par le cookie (table</text>
+<text x="705.0" y="655" font-size="12" text-anchor="middle">sessions), puis le compte</text>
+<line x1="515.0" y1="667" x2="895.0" y2="667" stroke="#24292f" stroke-width="1.4" marker-end="url(#fleche)"/>
+<text x="705.0" y="702" font-size="12" text-anchor="middle">l'utilisateur de cette session</text>
+<line x1="895.0" y1="714" x2="515.0" y2="714" stroke="#24292f" stroke-width="1.4" stroke-dasharray="7,5" marker-end="url(#ouverte)"/>
+<text x="325.0" y="749" font-size="12" text-anchor="middle">200 (page /dashboard)</text>
+<line x1="515.0" y1="761" x2="135.0" y2="761" stroke="#24292f" stroke-width="1.4" stroke-dasharray="7,5" marker-end="url(#ouverte)"/>
+</svg>

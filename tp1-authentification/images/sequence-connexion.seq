@@ -1,0 +1,21 @@
+# Diagramme de séquence de l'étape 3. Pour le régénérer (SVG + PNG) :
+#   python3 outils/diagramme_sequence.py tp1-authentification/images/sequence-connexion.seq
+titre: Connexion : comment le serveur reconnaît la personne
+participant N = Navigateur
+participant L = Serveur Laravel (Fortify)
+participant B = Base de données [base]
+
+== 1. La personne se connecte ==
+N -> L : POST /login (e-mail + mot de passe)
+L -> B : lit le compte (table users)
+B --> L : le compte et le hash de son mot de passe
+L -> L : vérifie le mot de passe saisi contre le hash
+L -> B : renouvelle la session et y inscrit l'utilisateur (table sessions)
+L --> N : 302 vers /dashboard + Set-Cookie: laravel-session
+note over N,L : Le cookie ne contient qu'un identifiant de session, aucune donnée sur la personne.
+
+== 2. La personne ouvre une page protégée ==
+N -> L : GET /dashboard + Cookie: laravel-session
+L -> B : lit la session désignée par le cookie (table sessions), puis le compte
+B --> L : l'utilisateur de cette session
+L --> N : 200 (page /dashboard)

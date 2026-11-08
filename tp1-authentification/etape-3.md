@@ -4,18 +4,10 @@
 
 HTTP n'a pas de mémoire : chaque requête arrive seule, sans lien avec la précédente. Pourtant, /dashboard répond 200 à une personne connectée et 302 à un visiteur. Le serveur reconnaît la personne grâce à deux éléments : une **session**, enregistrée côté serveur, et un **cookie**, conservé par le navigateur. Cette étape vous les fait voir.
 
-```text
-Navigateur                                                 Serveur Laravel
-    │                                                             │
-    │  POST /login  (e-mail + mot de passe)                       │
-    │ ──────────────────────────────────────────────────────────► │ vérifie le mot de passe (hash dans users)
-    │                                                             │ crée une session (table sessions) qui
-    │  ◄──────────────────── Set-Cookie: laravel-session ──────── │ retient l'utilisateur
-    │                                                             │
-    │  GET /dashboard  + Cookie: laravel-session                  │
-    │ ──────────────────────────────────────────────────────────► │ retrouve la session grâce au cookie,
-    │  ◄──────────────────────────────────────────────── 200 ──── │ donc l'utilisateur
-```
+![Diagramme de séquence UML : la personne se connecte, le serveur crée la session et envoie le cookie, puis la personne ouvre une page protégée](images/sequence-connexion.png)
+
+> [!NOTE]
+> **Lire un diagramme de séquence.** Un **diagramme de séquence** (UML) montre des échanges dans l'ordre, de haut en bas. Chaque colonne est un acteur (ici le navigateur, Laravel et la base de données). Une flèche pleine est une demande, une flèche en pointillés une réponse.
 
 Le serveur de développement (étape 2) doit tourner, et vous devez être déconnecté.
 
