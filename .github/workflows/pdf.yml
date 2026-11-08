@@ -18,7 +18,9 @@ on:
 
 concurrency:
   group: pdf-${{ github.ref }}
-  cancel-in-progress: true
+  # On n'annule jamais une publication en cours : la release est supprimée puis recréée, et
+  # une annulation entre les deux la laisserait absente. Seules les pull requests sont annulées.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -70,10 +72,8 @@ jobs:
         run: |
           VERSION=$(git describe --tags --match 'v[0-9]*' 2>/dev/null || echo "non numérotée")
           NOTES="Version ${VERSION}. Générés automatiquement depuis le commit ${GITHUB_SHA::7}, le $(date -u +%d/%m/%Y) à $(date -u +%H:%M) UTC. Ces fichiers sont remplacés à chaque mise à jour des TP : ne les modifiez pas à la main."
-          if gh release view pdf-latest >/dev/null 2>&1; then
-            gh release edit pdf-latest --notes "$NOTES" --latest
-          else
-            gh release create pdf-latest --title "PDF des TP (dernière version)" \
-              --notes "$NOTES" --target "$GITHUB_SHA" --latest
-          fi
-          gh release upload pdf-latest pdf/*.pdf --clobber
+          # La release est recréée à chaque publication : sa date et son étiquette (tag) suivent
+          # ainsi le dernier commit. Les adresses de téléchargement ne changent pas.
+          gh release delete pdf-latest --cleanup-tag --yes 2>/dev/null || true
+          gh release create pdf-latest pdf/*.pdf --title "PDF des TP (dernière version)" \
+            --notes "$NOTES" --target "$GITHUB_SHA" --latest
