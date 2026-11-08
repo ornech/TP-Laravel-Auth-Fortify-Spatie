@@ -1,0 +1,5 @@
+# Dépendances de la génération des PDF (versions testées ensemble)
+weasyprint==70.0
+markdown-it-py==4.2.0
+Pygments==2.21.0
+pypdf==7.0.0

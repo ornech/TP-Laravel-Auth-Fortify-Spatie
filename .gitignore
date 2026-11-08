@@ -1,3 +1,6 @@
 # Corrigés réservés à l'enseignant : ne jamais les publier (dépôt public)
 corrige.md
 **/corrige.md
+
+# PDF générés en local (ceux du dépôt sont produits par le workflow GitHub Actions)
+pdf/

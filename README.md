@@ -9,6 +9,13 @@ Deux TP, à faire dans cet ordre, sur le même projet Laravel 13.
 
 Le TP 2 continue le projet du TP 1 : ne le commencez qu'une fois les 20 tests du TP 1 verts.
 
+## Télécharger les PDF
+
+Chaque TP existe aussi en PDF, avec un sommaire cliquable, des signets pour naviguer dans le volet latéral du lecteur et des liens entre les étapes. Les fichiers sont régénérés automatiquement à chaque mise à jour des TP.
+
+- [TP 1 : Authentification avec Fortify (PDF)](https://github.com/ornech/TP-Laravel-Auth-Fortify-Spatie/releases/download/pdf-latest/tp1-authentification.pdf)
+- [TP 2 : Autorisation avec Spatie (PDF)](https://github.com/ornech/TP-Laravel-Auth-Fortify-Spatie/releases/download/pdf-latest/tp2-autorisation.pdf)
+
 Prérequis : PHP 8.3 ou plus récent, Composer, et l'extension PHP pdo\_sqlite.
 
 Versions de référence :
