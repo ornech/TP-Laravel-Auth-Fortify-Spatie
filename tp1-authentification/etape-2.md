@@ -12,6 +12,9 @@ php artisan migrate
 
 Cette migration ajoute à la table users les colonnes de la double authentification (two\_factor\_\*) et crée une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
 
+> [!NOTE]
+> **Mémo — Double authentification et passkeys.** La **double authentification** demande un second code en plus du mot de passe (colonnes two\_factor\_\*). Les **passkeys** sont une connexion sans mot de passe, par clé cryptographique de l'appareil (table passkeys).
+
 ## Limitez le nombre de routes exposées
 
 Une fois installé, Fortify expose environ trente routes : réinitialisation de mot de passe, double authentification, passkeys, modification du profil… Ce TP n'en utilise que quelques-unes.
@@ -33,7 +36,7 @@ Une fois installé, Fortify expose environ trente routes : réinitialisation de 
 Dans le fichier généré, twoFactorAuthentication([...]) et passkeys([...]) s'étendent sur plusieurs lignes. Commentez **toutes** les lignes de chaque entrée, jusqu'au ]), inclus (sélectionnez-les et utilisez Ctrl+/). Si vous ne commentez que la première, le fichier n'est plus du PHP valide et l'application plante.
 
 > [!NOTE]
-> **Mémo:** Chaque fonctionnalité (feature) activée est une route accessible et donc une surface d'attaque et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
+> **Mémo:** Chaque fonctionnalité (feature) activée est une route accessible et donc une **surface d'attaque** (l'ensemble des points par où une attaque peut entrer) et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
 >
 > **Règle : on n'active que ce qu'on utilise et qu'on a testé.**
 
@@ -43,7 +46,7 @@ Dans le fichier généré, twoFactorAuthentication([...]) et passkeys([...]) s'�
 php artisan route:list --only-vendor
 ```
 
-Copiez la sortie dans PREUVES.md. Vous devez y retrouver les routes que ce TP utilise : GET et POST /login, POST /logout, GET et POST /register. Les autres lignes ne sont pas des fonctionnalités que vous avez activées : up (contrôle de santé) et storage/{path} viennent de Laravel, et les trois routes user/confirm-password et user/confirmed-password-status viennent de Fortify, qui les enregistre toujours. Le TP ne les utilise pas et aucune vue n'est déclarée pour elles : une personne connectée qui demande GET /user/confirm-password obtient une erreur 500. Désactiver les features réduit donc la surface exposée, sans la ramener à zéro.
+L'option --only-vendor ne liste que les routes qui viennent d'un package. Copiez la sortie dans PREUVES.md. Vous devez y retrouver les routes que ce TP utilise : GET et POST /login, POST /logout, GET et POST /register. Les autres lignes ne sont pas des fonctionnalités que vous avez activées : up (contrôle de santé) et storage/{path} viennent de Laravel, et les trois routes user/confirm-password et user/confirmed-password-status viennent de Fortify, qui les enregistre toujours. Le TP ne les utilise pas et aucune vue n'est déclarée pour elles : une personne connectée qui demande GET /user/confirm-password obtient une erreur 500. Désactiver les features réduit donc la surface exposée, sans la ramener à zéro.
 
 **Faire : la page home**
 
@@ -76,6 +79,8 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 > | Fortify::createUsersUsing(CreateNewUser::class) | L'inscription plante : Fortify ne sait plus quelle classe crée les comptes |
 > | RateLimiter::for('login', ...) | Toute connexion renvoie une 500 « Rate limiter \[login\] is not defined. » |
 > | RateLimiter::for('two-factor', ...) | Les routes de double authentification plantent, si cette fonctionnalité est active |
+>
+> Le **limiteur** défini par RateLimiter::for('login', ...) est la règle qui limite les tentatives de connexion : au-delà de cinq par minute pour un même couple « e-mail + adresse IP », Fortify répond 429 (« Too Many Requests »).
 >
 > Les autres lignes de boot() (updateUserProfileInformationUsing, updateUserPasswordsUsing, resetUserPasswordsUsing, redirectUserForTwoFactorAuthenticationUsing et le limiteur passkeys) servent aux fonctionnalités désactivées à cette étape. Elles ne gênent pas : laissez-les en place et ne supprimez rien.
 
@@ -214,6 +219,9 @@ Le nom password\_confirmation n'est pas libre : la règle de validation confirme
 
 L'inscription est traitée par l'action app/Actions/Fortify/CreateNewUser.php, générée par fortify:install : elle valide les champs, puis crée le compte avec un mot de passe **haché**. Ouvrez-la et lisez-la.
 
+> [!NOTE]
+> **Mémo — Mot de passe haché.** On ne stocke jamais un mot de passe tel quel : on stocke son **hash**, une empreinte qu'on ne peut pas inverser. L'étape 3 le montre dans la base.
+
 **Preuve**
 
 Lancez le serveur de développement dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C). Vous le relancerez de la même façon aux étapes 3 et 4, qui utilisent le navigateur :
@@ -226,8 +234,11 @@ Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
 
 1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register (mot de passe d'au moins 8 caractères). Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue. Les messages d'erreur de Laravel (mot de passe trop court, confirmation différente…) s'affichent en anglais : c'est normal, la langue de l'application est l'anglais par défaut.
 2. Retirez @csrf de la vue de connexion et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne, remettez @csrf, puis déconnectez-vous.
-3. Envoyez la même requête sans navigateur, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
+3. Envoyez la même requête sans navigateur, avec curl, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
 4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative.
+
+> [!NOTE]
+> **Mémo — curl.** curl est un outil en ligne de commande qui envoie des requêtes HTTP sans navigateur. L'option -i affiche les en-têtes de la réponse, -X choisit la méthode (ici POST) et -d envoie des champs de formulaire.
 
 **Tests qui doivent passer :** test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees, test\_les\_fonctionnalites\_de\_profil\_et\_de\_mot\_de\_passe\_sont\_desactivees, test\_le\_mot\_de\_passe\_doit\_etre\_confirme, test\_une\_connexion\_valide\_ouvre\_une\_session, test\_un\_mauvais\_mot\_de\_passe\_est\_refuse, test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs, test\_les\_echecs\_d\_un\_compte\_ne\_bloquent\_pas\_les\_autres\_comptes, test\_la\_deconnexion\_n\_accepte\_que\_post, test\_l\_inscription\_cree\_un\_compte\_connecte.
 

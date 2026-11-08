@@ -19,13 +19,16 @@ Créez aussi à la racine du projet un fichier vide **PREUVES.md** : vous y copi
 
 Vous commencez par les tests : ils décrivent ce que l'application devra faire à la fin. Au départ, ils échouent tous. Votre travail consiste à les faire passer un par un, sans jamais les modifier. Créez tests/Feature/AuthenticationTest.php et copiez-y, sans rien changer, le fichier donné dans le [Contrat de tests](contrat-de-tests.md). Ces tests utilisent une base SQLite en mémoire, déjà configurée dans phpunit.xml : ils ne touchent pas à votre base de développement.
 
+> [!NOTE]
+> **Mémo — PHPUnit.** PHPUnit est l'outil de test de PHP : c'est lui qui exécute les tests, lancé par la commande php artisan test.
+
 **Preuve**
 
 ```bash
 php artisan test --filter=AuthenticationTest
 ```
 
-Les 20 tests échouent : les routes, les pages et le seeder qu'ils utilisent n'existent pas encore.
+Les 20 tests échouent : les routes, les pages et les comptes de démonstration qu'ils utilisent n'existent pas encore.
 
 > [!NOTE]
 > Lancez les commandes de test dans un terminal ordinaire. Si vous les lancez depuis un assistant IA (Claude Code, Cursor…), la sortie peut s'afficher en JSON au lieu du compte rendu habituel : c'est le comportement du package laravel/pao, inclus dans le squelette Laravel 13. Voir le [dépannage](depannage.md).
@@ -33,6 +36,9 @@ Les 20 tests échouent : les routes, les pages et le seeder qu'ils utilisent n'e
 ## Créer les comptes de démonstration
 
 Pour vous connecter dans le navigateur, il faut des comptes qui existent déjà. Un seeder les crée.
+
+> [!NOTE]
+> **Mémo — Seeder.** Un **seeder** est une classe qui remplit la base de données avec des données de départ. On le lance avec php artisan db:seed.
 
 **Faire** — php artisan make:seeder DemoUserSeeder, puis complétez le fichier :
 
@@ -109,6 +115,9 @@ php artisan tinker --execute="dump(DB::table('users')->pluck('email'));"
 ```
 
 migrate:fresh --seed supprime toutes les tables, les recrée, puis lance les seeders. Le second lancement (db:seed) ne doit ni échouer ni créer de doublon : vous devez voir exactement deux adresses, alice@exemple.test et bob@exemple.test. Copiez la dernière sortie dans PREUVES.md.
+
+> [!NOTE]
+> **Mémo — tinker.** tinker est la console interactive de Laravel : elle exécute du code PHP dans le contexte de votre application. Avec l'option --execute, elle exécute l'instruction donnée puis rend la main ; ici, elle liste les adresses e-mail de la table users.
 
 **Test qui doit passer :**
 

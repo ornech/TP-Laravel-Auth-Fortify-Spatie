@@ -26,6 +26,9 @@ Le package spatie/laravel-permission crée cinq tables en base via une migration
 | model\_has\_roles | Pivot polymorphe : quel modèle (User, ApiClient…) a quel rôle. Colonnes : role\_id, model\_type, model\_id. |
 | model\_has\_permissions | Pivot polymorphe : permissions attribuées directement à un modèle, sans passer par un rôle (cas rare). |
 
+> [!NOTE]
+> **Mémo — Vocabulaire de la base de Spatie.** Une table **pivot** (ou table de liaison) relie deux autres tables ; **N-to-N** signifie « plusieurs à plusieurs » (un rôle regroupe plusieurs permissions, une permission peut appartenir à plusieurs rôles) ; **polymorphe** signifie que la même table peut relier des modèles de types différents, la colonne model\_type indiquant lequel. Enfin, un **guard** est le mécanisme par lequel Laravel authentifie les utilisateurs : guard\_name vaut `web` ici, le guard à sessions qu'utilise Fortify.
+
 **Pourquoi cette architecture ?**
 
 Les permissions ne sont pas stockées sur le modèle User, afin de permettre de réutiliser le même système pour n'importe quel modèle Eloquent (utilisateurs, API clients, service accounts…).
@@ -42,7 +45,10 @@ User ──(model_has_roles)──► Role ──(role_has_permissions)──►
   └──(model_has_permissions)──► Permission (direct, rare)
 ```
 
-L'utilisateur hérite de toutes les permissions de ses rôles, plus celles qu'on lui a accordées directement. C'est le pattern RBAC classique, implémenté en N-to-N polymorphe pour rester découplé du modèle utilisateur.
+L'utilisateur hérite de toutes les permissions de ses rôles, plus celles qu'on lui a accordées directement. C'est le patron classique du RBAC, implémenté en N-to-N polymorphe pour rester découplé du modèle utilisateur.
+
+> [!NOTE]
+> **Mémo — RBAC.** RBAC (*Role-Based Access Control*) est le contrôle d'accès fondé sur les rôles : on ne donne pas des droits à chaque personne, on donne des droits à des rôles, puis des rôles aux personnes.
 
 **Faire**
 

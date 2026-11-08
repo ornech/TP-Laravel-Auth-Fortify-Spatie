@@ -63,13 +63,18 @@ Le contrôleur (ici AdminController) ne peut être atteint qu’après deux vér
 | 302 | Redirection : non authentifié | Un visiteur demande /admin/users |
 | 403 | Authentifié, mais non autorisé | Un utilisateur demande /admin/users |
 
-## Livrables
+## Livrables : la matrice d'accès de l'administration
 
-Voici ce qui est attendu en termes de protection des routes. Ces cas devront être vérifiés par un test (étape 5).
+Voici ce qui est attendu en termes de protection des routes, sous la forme d'une matrice d'accès :
+
+> [!NOTE]
+> **Mémo — Rappel : la matrice d'accès.** Une **matrice d'accès** est un tableau qui croise des **profils** (en colonnes) et des **routes** (en lignes) ; chaque case indique ce que l'application doit répondre à ce profil pour cette route. Ici, lisez la ligne /admin/users : le visiteur est renvoyé vers la connexion (302), l'utilisateur est connecté mais n'a pas le droit (403), l'administrateur voit la page (200). Le TP 1 a présenté ce principe avec les profils visiteur et personne connectée.
 
 | Route | Visiteur | Utilisateur | Administrateur |
 | --- | --- | --- | --- |
 | /admin/users | 302 vers /login | 403 | 200 |
+
+Les 3 cases deviennent les 3 cas du test test\_la\_matrice\_d\_acces\_est\_respectee, à l'étape 5.
 
 Les pages du TP 1 (/accueil, /login, /dashboard) gardent leur comportement. L'accueil et le tableau de bord affichent en plus un contenu propre au rôle.
 
@@ -82,3 +87,6 @@ Spatie enregistre qui a quel rôle et quelles permissions, mais ne décide pas �
 | Les tables des rôles et des permissions, et les méthodes assignRole(), hasRole(), can()… | Quels rôles et quelles permissions existent |
 | Les middlewares role, permission et role\_or\_permission, et les directives @role et @can | Les alias de middlewares dans bootstrap/app.php, et quelle permission protège quelle route |
 | Le contrôle d'accès à chaque requête | Les règles métier, par exemple le rôle attribué à l'inscription |
+
+> [!NOTE]
+> **Mémo — Alias de middleware.** Un **alias** est un nom court (par exemple permission) qui désigne une classe de middleware. L'étape 4 déclare les alias dans bootstrap/app.php.

@@ -1,6 +1,6 @@
 # Contrat de tests : TP 2
 
-Le TP 2 est terminé quand les 14 tests de ce fichier passent, dont les 3 cases de la matrice d'accès, **et** que les 20 tests du TP 1 passent toujours, après l'adaptation décrite à l'étape 3 (34 tests au total avec php artisan test --filter="AuthenticationTest|AuthorizationTest"). Copiez-le à l'étape 1 dans tests/Feature/AuthorizationTest.php, sans le modifier.
+Le TP 2 est terminé quand les 14 tests de ce fichier passent, dont les 3 cases de la matrice d'accès (le tableau de la section « Livrables » du README), **et** que les 20 tests du TP 1 passent toujours, après l'adaptation décrite à l'étape 3 (34 tests au total avec php artisan test --filter="AuthenticationTest|AuthorizationTest"). Copiez-le à l'étape 1 dans tests/Feature/AuthorizationTest.php, sans le modifier.
 
 Comme celui du TP 1, le fichier est commenté pour servir de modèle : lisez d'abord l'en-tête du [contrat du TP 1](../tp1-authentification/contrat-de-tests.md), qui présente les mécanismes de base. Celui-ci ajoute la préparation par seeders et les assertions propres aux rôles et aux permissions.
 
@@ -143,7 +143,8 @@ class AuthorizationTest extends TestCase
 
     /**
      * La matrice d'accès de l'administration : une ligne par profil.
-     * (Un data provider : voir le contrat du TP 1.)
+     * C'est le tableau « profil × route → résultat attendu » de la section
+     * « Livrables » du README. (Un data provider : voir le contrat du TP 1.)
      */
     public static function matriceDAcces(): array
     {

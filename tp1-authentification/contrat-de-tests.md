@@ -1,6 +1,6 @@
 # Contrat de tests : TP 1
 
-Le TP 1 est terminé quand les 20 tests de ce fichier passent, dont les 6 cases de la matrice d'accès. Copiez-le à l'étape 1 dans tests/Feature/AuthenticationTest.php, sans le modifier.
+Le TP 1 est terminé quand les 20 tests de ce fichier passent, dont les 6 cases de la matrice d'accès (le tableau de la section « Livrables » du README). Copiez-le à l'étape 1 dans tests/Feature/AuthenticationTest.php, sans le modifier.
 
 Le fichier est abondamment commenté : le thème du TP n'est pas le test, mais ce mécanisme servira dans vos prochains projets. Lisez l'en-tête et les commentaires pour comprendre comment chaque test est construit.
 
@@ -20,7 +20,7 @@ Ce que chaque test prouve
 | 2 | test\_l\_inscription\_cree\_un\_compte\_connecte | L'inscription crée un compte, connecte la personne et ne stocke jamais le mot de passe en clair |
 | 3 | test\_la\_connexion\_enregistre\_l\_utilisateur\_dans\_la\_session | Après une connexion, la session contient l'identifiant du compte : c'est cela qui signifie « connecté » |
 | 3 | test\_la\_deconnexion\_detruit\_la\_session | La déconnexion vide la session, et /dashboard renvoie de nouveau vers /login |
-| 4 | test\_la\_matrice\_d\_acces\_est\_respectee (6 cas) | Chaque case de la matrice d'accès : profil × route → code HTTP |
+| 4 | test\_la\_matrice\_d\_acces\_est\_respectee (6 cas) | Chaque case de la matrice d'accès (voir le README) : profil × route → code HTTP |
 | 4 | test\_un\_visiteur\_est\_redirige\_vers\_la\_connexion | La redirection 302 du visiteur mène bien à /login |
 | 4 | test\_l\_accueil\_s\_adapte\_au\_profil | /accueil affiche un contenu différent pour le visiteur et pour la personne connectée |
 
@@ -351,6 +351,10 @@ class AuthenticationTest extends TestCase
 
     /**
      * La matrice d'accès : une ligne par case.
+     *
+     * Une matrice d'accès est un tableau « profil × route → résultat attendu »
+     * (voir la section « Livrables » du README). Ici, chaque case du tableau
+     * devient une ligne : [profil, URL, code HTTP attendu].
      *
      * Un « data provider » est une méthode statique qui renvoie une liste de cas.
      * Chaque cas est une ligne : [profil, URL, code HTTP attendu]. La clé de la

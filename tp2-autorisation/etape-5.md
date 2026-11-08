@@ -1,6 +1,6 @@
 # Étape 5 : Protéger les routes et compléter les pages
 
-À la fin de cette étape, l'application respecte la matrice d'accès de l'administration : un visiteur est renvoyé vers la connexion, un utilisateur reçoit une 403, l'administrateur accède à la page. L'accueil et le tableau de bord affichent un contenu différent selon le rôle.
+À la fin de cette étape, l'application respecte la matrice d'accès de l'administration (le tableau de la section « Livrables » du README) : un visiteur est renvoyé vers la connexion, un utilisateur reçoit une 403, l'administrateur accède à la page. L'accueil et le tableau de bord affichent un contenu différent selon le rôle.
 
 Le DashboardController, la route /dashboard, la déconnexion et la page /accueil existent déjà (TP 1) : vous les complétez.
 
