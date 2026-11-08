@@ -1,4 +1,4 @@
-# Étape 5 : Déclarer les middlewares de Spatie
+# Étape 4 : Déclarer les middlewares de Spatie
 
 À la fin de cette étape, les routes peuvent utiliser permission:…, role:… et role\_or\_permission:….
 
@@ -36,4 +36,4 @@ $middleware->alias([
 
 **Preuve** — la sortie de la commande ls (ou dir) ci-dessus.
 
-**Question 4.** Si vous n'aviez pas regardé dans vendor, comment auriez-vous découvert une faute dans le nom d'une classe de middleware ? Quel type de test l'aurait révélée ?
+**Question 3.** Si vous n'aviez pas regardé dans vendor, comment auriez-vous découvert une faute dans le nom d'une classe de middleware ? Quel type de test l'aurait révélée ?

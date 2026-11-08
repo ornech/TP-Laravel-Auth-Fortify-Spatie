@@ -1,4 +1,4 @@
-# Étape 4 : Attribuer un rôle dès l'inscription (côté serveur)
+# Étape 3 : Attribuer un rôle dès l'inscription (côté serveur)
 
 À la fin de cette étape, tout nouvel inscrit reçoit le rôle `utilisateur`, et un rôle envoyé par le client est ignoré.
 
@@ -98,7 +98,7 @@ Si le client envoie `role=administrateur`, ce champ est **simplement absent** de
 
 ## La version sûre
 
-**Faire** — dans `app/Actions/Fortify/CreateNewUser.php`, remplacez la méthode `create()` par :
+**Faire** — dans `app/Actions/Fortify/CreateNewUser.php` (l'action que vous avez lue au TP 1), remplacez la méthode `create()` par :
 
 ```php
     public function create(array $input): User
@@ -124,6 +124,20 @@ Si le client envoie `role=administrateur`, ce champ est **simplement absent** de
 ```
 
 **Pourquoi ça marche :** `$data` ne contient que `name`, `email` et `password`. Le champ `role` envoyé par le client est simplement **absent** de `$data`, et le rôle est fixé en dur par le serveur.
+
+**Faire — adapter le test d'inscription du TP 1.** Lancez le contrat du TP 1 :
+
+```bash
+php artisan test --filter=AuthenticationTest
+```
+
+Un test échoue : test\_l\_inscription\_cree\_un\_compte\_connecte, avec le message « There is no role named `utilisateur` for guard `web`. ». C'est normal : l'inscription attribue maintenant un rôle, et la base de ce test, préparée avec une simple factory, n'en contient aucun. Une règle de l'application a changé, la préparation du test doit changer avec elle. C'est la **seule** modification autorisée du contrat du TP 1 : dans tests/Feature/AuthenticationTest.php, ajoutez l'import `use Database\Seeders\RoleSeeder;`, puis, dans la méthode setUp(), juste après `parent::setUp();`, la ligne :
+
+```php
+        $this->seed(RoleSeeder::class);
+```
+
+Relancez la commande : les 20 tests du TP 1 redeviennent verts.
 
 **Tests qui doivent passer :**
 
@@ -170,11 +184,11 @@ Le serveur de développement doit tourner pour les points 3 et 5. S'il est arrê
    php artisan migrate:fresh --seed
    ```
 
-   Cette commande supprime tous les comptes de test : celui de l'attaque, resté administrateur, et ceux créés avant cette étape, qui n'ont aucun rôle. Elle recrée les deux comptes de démonstration.
+   Cette commande supprime tous les comptes de test : celui de l'attaque, resté administrateur, et ceux créés avant cette étape (au TP 1 par exemple), qui n'ont aucun rôle. Elle recrée les deux comptes de démonstration.
 
 **À rendre :** les deux sorties de tinker (vulnérable et sûre) et les deux résultats de test.
 
-> **Question 3.** Dans la version vulnérable, la validation n'a pas bloqué le champ `role`. Pourquoi ? Qu'est-ce qui change si le code lit `$data` au lieu de `$input` ?
+> **Question 2.** Dans la version vulnérable, la validation n'a pas bloqué le champ `role`. Pourquoi ? Qu'est-ce qui change si le code lit `$data` au lieu de `$input` ?
 
 ## En résumé
 

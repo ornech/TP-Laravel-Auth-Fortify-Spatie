@@ -1,4 +1,4 @@
-# Étape 3 : Installer Fortify
+# Étape 2 : Installer Fortify
 
 À la fin de cette étape, on sera en mesure de s'inscrire, de se connecter, de se déconnecter et l’on fera en sorte que Fortify n'expose que les routes dont l'application a besoin.
 
@@ -143,7 +143,7 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 
 ## **Création du tableau de bord minimal et de la déconnexion**
 
-Après une connexion réussie, Fortify redirige vers la page de la clé home (/dashboard). Cette page doit exister, et elle doit offrir un moyen de se déconnecter : sans lui, vous resteriez connecté et ne pourriez plus atteindre le formulaire de connexion (une personne déjà connectée qui demande /login est redirigée ailleurs). Vous créez ici une version minimale, que l'étape 6 complètera.
+Après une connexion réussie, Fortify redirige vers la page de la clé home (/dashboard). Cette page doit exister, et elle doit offrir un moyen de se déconnecter : sans lui, vous resteriez connecté et ne pourriez plus atteindre le formulaire de connexion (une personne déjà connectée qui demande /login est redirigée ailleurs). Vous créez ici une version minimale.
 
 **Faire — le contrôleur.**
 
@@ -165,7 +165,7 @@ public function index()
 ```php
 use App\Http\Controllers\DashboardController;
 
-// Authentifié : utilisateur et administrateur
+// Réservé aux personnes connectées
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
@@ -212,9 +212,11 @@ La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côt
 
 Le nom password\_confirmation n'est pas libre : la règle de validation confirmed cherche un champ nommé \<champ>\_confirmation.
 
+L'inscription est traitée par l'action app/Actions/Fortify/CreateNewUser.php, générée par fortify:install : elle valide les champs, puis crée le compte avec un mot de passe **haché**. Ouvrez-la et lisez-la.
+
 **Preuve**
 
-Lancez le serveur de développement dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C). Vous le relancerez de la même façon aux étapes 4 et 6, qui utilisent le navigateur :
+Lancez le serveur de développement dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C). Vous le relancerez de la même façon aux étapes 3 et 4, qui utilisent le navigateur :
 
 ```bash
 php artisan serve
@@ -223,12 +225,12 @@ php artisan serve
 Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
 
 1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register (mot de passe d'au moins 8 caractères). Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue. Les messages d'erreur de Laravel (mot de passe trop court, confirmation différente…) s'affichent en anglais : c'est normal, la langue de l'application est l'anglais par défaut.
-2. Retirez @csrf de la vue de connexion et connectez-vous avec utilisateur@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne, remettez @csrf, puis déconnectez-vous.
-3. Envoyez la même requête sans navigateur, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=utilisateur@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
-4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte admin@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (utilisateur@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative.
+2. Retirez @csrf de la vue de connexion et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne, remettez @csrf, puis déconnectez-vous.
+3. Envoyez la même requête sans navigateur, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
+4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative.
 
-**Tests qui doivent passer :** test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees, test\_le\_mot\_de\_passe\_doit\_etre\_confirme, test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs, test\_la\_deconnexion\_n\_accepte\_que\_post.
+**Tests qui doivent passer :** test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees, test\_les\_fonctionnalites\_de\_profil\_et\_de\_mot\_de\_passe\_sont\_desactivees, test\_le\_mot\_de\_passe\_doit\_etre\_confirme, test\_une\_connexion\_valide\_ouvre\_une\_session, test\_un\_mauvais\_mot\_de\_passe\_est\_refuse, test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs, test\_les\_echecs\_d\_un\_compte\_ne\_bloquent\_pas\_les\_autres\_comptes, test\_la\_deconnexion\_n\_accepte\_que\_post, test\_l\_inscription\_cree\_un\_compte\_connecte.
 
-**Question 2.** Le limiteur de boot() compte les tentatives par couple « e-mail + adresse IP ». Quel problème poserait un comptage par adresse IP seule dans un lycée où tous les postes sortent par la même IP ? Quelle attaque ce couple ne bloque-t-il pas ?
+**Question 1.** Le limiteur de boot() compte les tentatives par couple « e-mail + adresse IP ». Quel problème poserait un comptage par adresse IP seule dans un lycée où tous les postes sortent par la même IP ? Quelle attaque ce couple ne bloque-t-il pas ?
 
-Suite : l'étape 3 bis regarde ce qui s'est passé dans la base et dans les cookies pendant ces connexions.
+Suite : l'étape 3 regarde ce qui s'est passé dans la base et dans les cookies pendant ces connexions.

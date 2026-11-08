@@ -1,4 +1,20 @@
-# Étape 1 : Installer Spatie et préparation du modèle User
+# Étape 1 : Installer Spatie et préparer le modèle User
+
+Ce TP continue le projet tp-auth du [TP 1](../tp1-authentification/README.md) : placez-vous dans son dossier. Avant de commencer, les 20 tests du TP 1 doivent être verts (php artisan test --filter=AuthenticationTest).
+
+## Installer le contrat de tests
+
+Comme au TP 1, vous commencez par les tests. Créez tests/Feature/AuthorizationTest.php et copiez-y, sans rien changer, le fichier donné dans le [Contrat de tests](contrat-de-tests.md).
+
+**Preuve**
+
+```bash
+php artisan test --filter=AuthorizationTest
+```
+
+Les 14 tests échouent, avec le message « Target class [`Database\Seeders\RoleSeeder`] does not exist. » : les seeders et Spatie n'existent pas encore. Les 20 tests du TP 1 doivent, eux, rester verts tout au long du TP 2. Une seule adaptation de leur préparation sera nécessaire, à l'étape 3, et elle y est expliquée.
+
+## Installer Spatie
 
 Le package spatie/laravel-permission crée cinq tables en base via une migration unique (2 tables de définition + 3 tables de liaison).
 

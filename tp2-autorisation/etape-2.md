@@ -1,6 +1,6 @@
 # Étape 2 : Créer les rôles, la permission et les comptes de démonstration
 
-Deux seeders, deux responsabilités. RoleSeeder crée la structure des droits, utile partout, y compris en production. DemoUserSeeder crée deux comptes de démonstration, qui ne doivent jamais exister en production.
+Deux seeders, deux responsabilités. RoleSeeder crée la structure des droits, utile partout, y compris en production. DemoUserSeeder, déjà créé au TP 1, change de rôle : il crée maintenant deux comptes de démonstration **avec leur rôle**. Ces comptes ne doivent jamais exister en production.
 
 ## **Seeder RoleSeeder**
 
@@ -38,7 +38,7 @@ class RoleSeeder extends Seeder
 
 ## **Seeder DemoUserSeeder**
 
-**Faire** — php artisan make:seeder DemoUserSeeder, puis complétez le fichier :
+**Faire** — le fichier database/seeders/DemoUserSeeder.php existe depuis le TP 1. **Remplacez son contenu** par celui-ci (exception à la règle d'or) : il crée désormais deux comptes, chacun avec son rôle.
 
 ```php
 <?php
@@ -76,7 +76,7 @@ class DemoUserSeeder extends Seeder
 }
 ```
 
-**Faire.** Dans database/seeders/DatabaseSeeder.php, **remplacez le contenu du fichier** par celui-ci (exception à la règle d'or, car le fichier généré n'est qu'un exemple). Le compte `test@example.com` qu'il créait n'aurait aucun rôle, et l'import de User devient inutile.
+**Faire.** Dans database/seeders/DatabaseSeeder.php (modifié au TP 1), **remplacez le contenu du fichier** par celui-ci (exception à la règle d'or) : il lance maintenant RoleSeeder, puis DemoUserSeeder.
 
 ```php
 <?php
@@ -104,6 +104,8 @@ class DatabaseSeeder extends Seeder
 ```
 
 L’ordre compte : DemoUserSeeder attribue des rôles que RoleSeeder doit avoir créés.
+
+Les comptes alice et bob du TP 1 disparaissent au prochain migrate:fresh : ils ne servaient qu'à l'authentification. Les deux comptes de ce TP les remplacent.
 
 > [!NOTE]
 > **Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.

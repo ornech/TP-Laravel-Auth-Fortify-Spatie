@@ -1,4 +1,4 @@
-# Étape 3 bis : Comprendre la connexion : la session
+# Étape 3 : Comprendre la connexion : la session
 
 À la fin de cette étape, vous saurez expliquer sur quelle donnée repose la phrase « cet utilisateur est connecté ».
 
@@ -17,7 +17,7 @@ Navigateur                                                 Serveur Laravel
     │  ◄──────────────────────────────────────────────── 200 ──── │ donc l'utilisateur
 ```
 
-Le serveur de développement (étape 3) doit tourner, et vous devez être déconnecté.
+Le serveur de développement (étape 2) doit tourner, et vous devez être déconnecté.
 
 **Observation 1 — Le mot de passe en base.**
 
@@ -52,7 +52,7 @@ php artisan tinker --execute="dump(DB::table('sessions')->get(['id', 'user_id'])
 
 Vous devez voir **une seule ligne**, avec `user_id` vide : un visiteur a déjà une session, que Laravel crée dès la première visite. Notez le début de son `id`. Si plusieurs lignes apparaissent, d'autres onglets ou d'autres clients (`curl`) ont visité le site : fermez-les, videz la table et rechargez /login.
 
-**Observation 4 — La connexion.** Connectez-vous avec utilisateur@exemple.test (mot de passe password), puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, dont `user_id` vaut l'identifiant de utilisateur@exemple.test (colonne `id` de l'observation 1) et dont l'`id` a **changé** : à la connexion, Laravel renouvelle l'identifiant de session.
+**Observation 4 — La connexion.** Connectez-vous avec alice@exemple.test (mot de passe password), puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, dont `user_id` vaut l'identifiant de alice@exemple.test (colonne `id` de l'observation 1) et dont l'`id` a **changé** : à la connexion, Laravel renouvelle l'identifiant de session.
 
 Facultatif : voir ce que la session retient.
 
@@ -60,7 +60,7 @@ Facultatif : voir ce que la session retient.
 php artisan tinker --execute="dump(json_decode(base64_decode(DB::table('sessions')->value('payload')), true));"
 ```
 
-On y trouve le jeton CSRF (`_token`, celui que `@csrf` place dans les formulaires, étape 3) et une clé qui commence par `login_web_`, dont la valeur est l'identifiant de l'utilisateur : c'est cette donnée qui signifie « connecté ».
+On y trouve le jeton CSRF (`_token`, celui que `@csrf` place dans les formulaires, étape 2) et une clé qui commence par `login_web_`, dont la valeur est l'identifiant de l'utilisateur : c'est cette donnée qui signifie « connecté ».
 
 **Observation 5 — La déconnexion.** Cliquez sur « Se déconnecter », puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, avec `user_id` vide et un nouvel `id` : la session de l'utilisateur a été détruite côté serveur, et un cookie copié avant la déconnexion ne mène plus nulle part.
 
@@ -71,7 +71,9 @@ On y trouve le jeton CSRF (`_token`, celui que `@csrf` place dans les formulaire
 
 Copiez dans PREUVES.md la sortie de l'observation 1 et les trois affichages de la table `sessions` (observations 3, 4 et 5) : visiteur, connecté, déconnecté.
 
-> **Question 2 bis.** Vous êtes connecté. Quelqu'un copie la valeur de votre cookie `laravel-session` dans son propre navigateur.
+**Tests qui doivent passer :** test\_la\_connexion\_enregistre\_l\_utilisateur\_dans\_la\_session, test\_la\_deconnexion\_detruit\_la\_session. Ils vérifient automatiquement ce que vous venez d'observer dans la table sessions : lisez-les dans le contrat, ils montrent comment tester une session.
+
+> **Question 2.** Vous êtes connecté. Quelqu'un copie la valeur de votre cookie `laravel-session` dans son propre navigateur.
 >
 > 1. Que peut-il faire sans connaître votre mot de passe ?
 > 2. Que devient ce cookie si vous cliquez ensuite sur « Se déconnecter » ?
