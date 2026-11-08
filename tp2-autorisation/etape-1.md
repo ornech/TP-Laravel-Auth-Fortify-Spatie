@@ -27,7 +27,7 @@ Le package spatie/laravel-permission crée cinq tables en base via une migration
 | model\_has\_permissions | Pivot polymorphe : permissions attribuées directement à un modèle, sans passer par un rôle (cas rare). |
 
 > [!NOTE]
-> **Mémo — Vocabulaire de la base de Spatie.** Une table **pivot** (ou table de liaison) relie deux autres tables ; **N-to-N** signifie « plusieurs à plusieurs » (un rôle regroupe plusieurs permissions, une permission peut appartenir à plusieurs rôles) ; **polymorphe** signifie que la même table peut relier des modèles de types différents, la colonne model\_type indiquant lequel. Enfin, un **guard** est le mécanisme par lequel Laravel authentifie les utilisateurs : guard\_name vaut `web` ici, le guard à sessions qu'utilise Fortify.
+> **Vocabulaire de la base de Spatie.** Une table **pivot** (ou table de liaison) relie deux autres tables ; **N-to-N** signifie « plusieurs à plusieurs » (un rôle regroupe plusieurs permissions, une permission peut appartenir à plusieurs rôles) ; **polymorphe** signifie que la même table peut relier des modèles de types différents, la colonne model\_type indiquant lequel. Enfin, un **guard** est le mécanisme par lequel Laravel authentifie les utilisateurs : guard\_name vaut `web` ici, le guard à sessions qu'utilise Fortify.
 
 **Pourquoi cette architecture ?**
 
@@ -48,7 +48,7 @@ User ──(model_has_roles)──► Role ──(role_has_permissions)──►
 L'utilisateur hérite de toutes les permissions de ses rôles, plus celles qu'on lui a accordées directement. C'est le patron classique du RBAC, implémenté en N-to-N polymorphe pour rester découplé du modèle utilisateur.
 
 > [!NOTE]
-> **Mémo — RBAC.** RBAC (*Role-Based Access Control*) est le contrôle d'accès fondé sur les rôles : on ne donne pas des droits à chaque personne, on donne des droits à des rôles, puis des rôles aux personnes.
+> **RBAC.** RBAC (*Role-Based Access Control*) est le contrôle d'accès fondé sur les rôles : on ne donne pas des droits à chaque personne, on donne des droits à des rôles, puis des rôles aux personnes.
 
 **Faire**
 
@@ -66,7 +66,7 @@ Dans app/Models/User.php, ajoutez **l'import** et le **trait** HasRoles.
 Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasRole(), syncRoles()… La méthode can(), déjà présente, se met à tenir compte des permissions Spatie (voir le mémo).
 
 > [!NOTE]
-> **Mémo:** Le trait ***HasRoles***
+> **Le trait *HasRoles***
 >
 > En PHP, une classe n’hérite que d’**une seule** classe parente. *User* hérite déjà de *Authenticatable* : on ne peut pas lui ajouter un second *extends*.
 >

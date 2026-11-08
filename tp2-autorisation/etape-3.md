@@ -151,7 +151,7 @@ php artisan test --filter=test_un_role_injecte_a_l_inscription_est_ignore
 L'objectif : voir l'attaque réussir, puis vérifier que le test la détecte.
 
 > [!NOTE]
-> **Mémo — Les outils de développement du navigateur.** On les ouvre avec **F12**, ou avec **Ctrl + Shift + I** (Chrome, Edge et Firefox). L'onglet qui affiche et permet de modifier le HTML de la page en direct s'appelle **Elements** sous Chrome et Edge, **Inspecteur** sous Firefox. Attention : sous Firefox, Ctrl + Shift + E ouvre l'onglet Réseau, pas l'Inspecteur.
+> **Les outils de développement du navigateur.** On les ouvre avec **F12**, ou avec **Ctrl + Shift + I** (Chrome, Edge et Firefox). L'onglet qui affiche et permet de modifier le HTML de la page en direct s'appelle **Elements** sous Chrome et Edge, **Inspecteur** sous Firefox. Attention : sous Firefox, Ctrl + Shift + E ouvre l'onglet Réseau, pas l'Inspecteur.
 
 > [!WARNING]
 > Un `type="hidden"` n'est **pas** une protection. Le client peut toujours modifier tout ce qui est envoyé.

@@ -68,7 +68,7 @@ Le contrôleur (ici AdminController) ne peut être atteint qu’après deux vér
 Voici ce qui est attendu en termes de protection des routes, sous la forme d'une matrice d'accès :
 
 > [!NOTE]
-> **Mémo — Rappel : la matrice d'accès.** Une **matrice d'accès** est un tableau qui croise des **profils** (en colonnes) et des **routes** (en lignes) ; chaque case indique ce que l'application doit répondre à ce profil pour cette route. Ici, lisez la ligne /admin/users : le visiteur est renvoyé vers la connexion (302), l'utilisateur est connecté mais n'a pas le droit (403), l'administrateur voit la page (200). Le TP 1 a présenté ce principe avec les profils visiteur et personne connectée.
+> **Rappel : la matrice d'accès.** Une **matrice d'accès** est un tableau qui croise des **profils** (en colonnes) et des **routes** (en lignes) ; chaque case indique ce que l'application doit répondre à ce profil pour cette route. Ici, lisez la ligne /admin/users : le visiteur est renvoyé vers la connexion (302), l'utilisateur est connecté mais n'a pas le droit (403), l'administrateur voit la page (200). Le TP 1 a présenté ce principe avec les profils visiteur et personne connectée.
 
 | Route | Visiteur | Utilisateur | Administrateur |
 | --- | --- | --- | --- |
@@ -89,4 +89,4 @@ Spatie enregistre qui a quel rôle et quelles permissions, mais ne décide pas �
 | Le contrôle d'accès à chaque requête | Les règles métier, par exemple le rôle attribué à l'inscription |
 
 > [!NOTE]
-> **Mémo — Alias de middleware.** Un **alias** est un nom court (par exemple permission) qui désigne une classe de middleware. L'étape 4 déclare les alias dans bootstrap/app.php.
+> **Alias de middleware.** Un **alias** est un nom court (par exemple permission) qui désigne une classe de middleware. L'étape 4 déclare les alias dans bootstrap/app.php.

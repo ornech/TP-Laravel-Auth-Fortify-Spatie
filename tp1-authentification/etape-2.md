@@ -13,7 +13,7 @@ php artisan migrate
 Cette migration ajoute à la table users les colonnes de la double authentification (two\_factor\_\*) et crée une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
 
 > [!NOTE]
-> **Mémo — Double authentification et passkeys.** La **double authentification** demande un second code en plus du mot de passe (colonnes two\_factor\_\*). Les **passkeys** sont une connexion sans mot de passe, par clé cryptographique de l'appareil (table passkeys).
+> **Double authentification et passkeys.** La **double authentification** demande un second code en plus du mot de passe (colonnes two\_factor\_\*). Les **passkeys** sont une connexion sans mot de passe, par clé cryptographique de l'appareil (table passkeys).
 
 ## Limitez le nombre de routes exposées
 
@@ -36,7 +36,7 @@ Une fois installé, Fortify expose environ trente routes : réinitialisation de 
 Dans le fichier généré, twoFactorAuthentication([...]) et passkeys([...]) s'étendent sur plusieurs lignes. Commentez **toutes** les lignes de chaque entrée, jusqu'au ]), inclus (sélectionnez-les et utilisez Ctrl+/). Si vous ne commentez que la première, le fichier n'est plus du PHP valide et l'application plante.
 
 > [!NOTE]
-> **Mémo:** Chaque fonctionnalité (feature) activée est une route accessible et donc une **surface d'attaque** (l'ensemble des points par où une attaque peut entrer) et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
+> Chaque fonctionnalité (feature) activée est une route accessible et donc une **surface d'attaque** (l'ensemble des points par où une attaque peut entrer) et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
 >
 > **Règle : on n'active que ce qu'on utilise et qu'on a testé.**
 
@@ -72,7 +72,7 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 ```
 
 > [!WARNING]
-> **Mémo — Ce que boot() contient déjà, et pourquoi il ne faut pas l'écraser.**
+> **Ce que boot() contient déjà, et pourquoi il ne faut pas l'écraser.**
 >
 > | Ligne de boot() | Si vous la supprimez |
 > | --- | --- |
@@ -135,7 +135,7 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 | **name="email", name="password"** | Les noms que Fortify attend. Un autre nom, et la connexion échoue. |
 
 > [!NOTE]
-> **Mémo: La protection CSRF de Laravel.**
+> **La protection CSRF de Laravel.**
 >
 > Laravel 13 vérifie qu'un POST vient bien de votre site en deux temps :
 >
@@ -200,7 +200,7 @@ Route::middleware('auth')->group(function () {
 La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côté serveur. Après la déconnexion, Fortify redirige vers /.
 
 > [!NOTE]
-> **Mémo — Pourquoi la déconnexion est un POST ?**
+> **Pourquoi la déconnexion est un POST ?**
 >
 > Une action qui modifie l’état ne doit pas être déclenchable par une simple URL. Avec un GET, n’importe quel site pourrait déconnecter vos utilisateurs, avec un lien vers https://votresite/logout ou en redirigeant vers cette adresse : le navigateur suit le lien en envoyant le cookie de session. Un POST avec la protection CSRF de Laravel refusera la requête venue d’un autre site.
 
@@ -220,7 +220,7 @@ Le nom password\_confirmation n'est pas libre : la règle de validation confirme
 L'inscription est traitée par l'action app/Actions/Fortify/CreateNewUser.php, générée par fortify:install : elle valide les champs, puis crée le compte avec un mot de passe **haché**. Ouvrez-la et lisez-la.
 
 > [!NOTE]
-> **Mémo — Mot de passe haché.** On ne stocke jamais un mot de passe tel quel : on stocke son **hash**, une empreinte qu'on ne peut pas inverser. L'étape 3 le montre dans la base.
+> **Mot de passe haché.** On ne stocke jamais un mot de passe tel quel : on stocke son **hash**, une empreinte qu'on ne peut pas inverser. L'étape 3 le montre dans la base.
 
 **Preuve**
 
@@ -238,7 +238,7 @@ Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
 4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative.
 
 > [!NOTE]
-> **Mémo — curl.** curl est un outil en ligne de commande qui envoie des requêtes HTTP sans navigateur. L'option -i affiche les en-têtes de la réponse, -X choisit la méthode (ici POST) et -d envoie des champs de formulaire.
+> **curl.** curl est un outil en ligne de commande qui envoie des requêtes HTTP sans navigateur. L'option -i affiche les en-têtes de la réponse, -X choisit la méthode (ici POST) et -d envoie des champs de formulaire.
 
 **Tests qui doivent passer :** test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees, test\_les\_fonctionnalites\_de\_profil\_et\_de\_mot\_de\_passe\_sont\_desactivees, test\_le\_mot\_de\_passe\_doit\_etre\_confirme, test\_une\_connexion\_valide\_ouvre\_une\_session, test\_un\_mauvais\_mot\_de\_passe\_est\_refuse, test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs, test\_les\_echecs\_d\_un\_compte\_ne\_bloquent\_pas\_les\_autres\_comptes, test\_la\_deconnexion\_n\_accepte\_que\_post, test\_l\_inscription\_cree\_un\_compte\_connecte.
 

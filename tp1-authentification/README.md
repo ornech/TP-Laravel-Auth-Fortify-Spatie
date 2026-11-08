@@ -42,7 +42,7 @@ Versions de référence :
 L'authentification répond à une seule question : « qui êtes-vous ? ». Dans Laravel, c'est le travail de **Fortify** (connexion, inscription, session), et le middleware **auth** protège les pages réservées aux personnes connectées. Un visiteur qui demande une telle page reçoit une redirection 302 vers /login.
 
 > [!NOTE]
-> **Mémo — Middleware et visiteur.** Un **middleware** est un code placé devant une route : il examine chaque requête avant que la page ne soit construite, puis la laisse passer ou la refuse. Un **visiteur** est une personne qui n'est pas connectée.
+> **Middleware et visiteur.** Un **middleware** est un code placé devant une route : il examine chaque requête avant que la page ne soit construite, puis la laisse passer ou la refuse. Un **visiteur** est une personne qui n'est pas connectée.
 
 Une seconde question, « avez-vous le droit de faire ceci ? », relève de l'**autorisation** : c'est l'objet du [TP 2](../tp2-autorisation/README.md).
 
@@ -56,14 +56,14 @@ Une seconde question, « avez-vous le droit de faire ceci ? », relève de l'**a
 | 429 | Trop de requêtes | Sixième tentative de connexion en moins d'une minute |
 
 > [!NOTE]
-> **Mémo — CSRF.** CSRF (*Cross-Site Request Forgery*) désigne une attaque où un site tiers fait envoyer à votre insu un formulaire à votre application, en profitant de la session de la personne connectée. Laravel s'en protège en exigeant un jeton secret dans chaque formulaire : l'étape 2 y revient en détail.
+> **CSRF.** CSRF (*Cross-Site Request Forgery*) désigne une attaque où un site tiers fait envoyer à votre insu un formulaire à votre application, en profitant de la session de la personne connectée. Laravel s'en protège en exigeant un jeton secret dans chaque formulaire : l'étape 2 y revient en détail.
 
 ## Livrables : la matrice d'accès
 
 Voici ce qui est attendu en termes de protection des routes, sous la forme d'une matrice d'accès :
 
 > [!NOTE]
-> **Mémo — Lire une matrice d'accès.** Une **matrice d'accès** est un tableau qui croise des **profils** (en colonnes : qui fait la demande) et des **routes** (en lignes : ce qui est demandé). Chaque case indique ce que l'application doit répondre à ce profil pour cette route. C'est le cahier des charges de la protection de l'application : on l'écrit avant de coder, puis on la vérifie par un test.
+> **Lire une matrice d'accès.** Une **matrice d'accès** est un tableau qui croise des **profils** (en colonnes : qui fait la demande) et des **routes** (en lignes : ce qui est demandé). Chaque case indique ce que l'application doit répondre à ce profil pour cette route. C'est le cahier des charges de la protection de l'application : on l'écrit avant de coder, puis on la vérifie par un test.
 >
 > Pour lire une case, croisez la ligne et la colonne. Par exemple, la ligne /dashboard et la colonne Visiteur donnent « 302 vers /login » : un visiteur qui demande /dashboard est redirigé vers la page de connexion. Les codes sont ceux du rappel ci-dessus, plus le 200 : la page s'affiche normalement.
 

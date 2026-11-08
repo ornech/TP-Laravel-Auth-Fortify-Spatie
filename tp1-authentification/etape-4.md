@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
 ```
 
 > [!NOTE]
-> **Mémo — Deux directives pour adapter une vue.**
+> **Deux directives pour adapter une vue.**
 >
 > | Directive | Quand elle affiche son contenu | Exemple d'usage |
 > | --- | --- | --- |
@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
 > Elles servent à adapter l'affichage, rien de plus : elles ne protègent aucune page.
 
 > [!NOTE]
-> **Mémo — Pourquoi /login renvoie vers /dashboard.** La matrice d'accès annonce qu'une personne déjà connectée qui demande /login reçoit une 302 vers /dashboard. Ce n'est pas la clé home de Fortify qui décide : elle ne sert qu'après une connexion ou une inscription réussie. C'est le middleware guest de Laravel : il cherche d'abord une route **nommée** dashboard, puis home. À défaut, il cherche une route dont l'**URI** est /dashboard, puis /home, et sinon renvoie vers /. Votre route /dashboard répond aux deux critères : son nom et son URI. Pour que /login ne renvoie plus vers /dashboard, il faudrait changer les deux. Notez enfin que le test ne vérifie que le code 302 de /login, pas la destination de la redirection.
+> **Pourquoi /login renvoie vers /dashboard.** La matrice d'accès annonce qu'une personne déjà connectée qui demande /login reçoit une 302 vers /dashboard. Ce n'est pas la clé home de Fortify qui décide : elle ne sert qu'après une connexion ou une inscription réussie. C'est le middleware guest de Laravel : il cherche d'abord une route **nommée** dashboard, puis home. À défaut, il cherche une route dont l'**URI** est /dashboard, puis /home, et sinon renvoie vers /. Votre route /dashboard répond aux deux critères : son nom et son URI. Pour que /login ne renvoie plus vers /dashboard, il faudrait changer les deux. Notez enfin que le test ne vérifie que le code 302 de /login, pas la destination de la redirection.
 
 **Tests qui doivent passer :** test\_la\_matrice\_d\_acces\_est\_respectee (6 cas, un par case de la matrice), test\_un\_visiteur\_est\_redirige\_vers\_la\_connexion, test\_l\_accueil\_s\_adapte\_au\_profil. Le contrat entier (20 tests) doit maintenant être vert.
 

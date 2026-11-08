@@ -28,7 +28,7 @@ php artisan tinker --execute="dump(DB::table('users')->get(['id', 'email', 'pass
 La colonne `password` contient un hash (60 caractères, qui commence par `$2y$`), jamais le mot de passe. À la connexion, Laravel vérifie le mot de passe saisi contre ce hash : on ne « déchiffre » jamais le hash. Les deux comptes de démonstration ont le même mot de passe (`password`) et pourtant des hashes différents.
 
 > [!NOTE]
-> **Mémo — Hash, bcrypt et sel.** Un **hash** est l'empreinte irréversible d'un mot de passe : on peut vérifier qu'un mot de passe correspond à son hash, mais on ne peut pas retrouver le mot de passe à partir du hash. **bcrypt** est l'algorithme de hachage utilisé par Laravel. Le **sel** est une valeur aléatoire ajoutée au mot de passe avant le calcul et inscrite dans le hash : c'est pourquoi deux mots de passe identiques donnent deux hashes différents.
+> **Hash, bcrypt et sel.** Un **hash** est l'empreinte irréversible d'un mot de passe : on peut vérifier qu'un mot de passe correspond à son hash, mais on ne peut pas retrouver le mot de passe à partir du hash. **bcrypt** est l'algorithme de hachage utilisé par Laravel. Le **sel** est une valeur aléatoire ajoutée au mot de passe avant le calcul et inscrite dans le hash : c'est pourquoi deux mots de passe identiques donnent deux hashes différents.
 
 **Observation 2 — Ce que le serveur remet à un nouveau visiteur.**
 
@@ -66,12 +66,12 @@ php artisan tinker --execute="dump(json_decode(base64_decode(DB::table('sessions
 On y trouve le jeton CSRF (`_token`, celui que `@csrf` place dans les formulaires, étape 2) et une clé qui commence par `login_web_`, dont la valeur est l'identifiant de l'utilisateur : c'est cette donnée qui signifie « connecté ».
 
 > [!NOTE]
-> **Mémo — La colonne payload.** La colonne `payload` de la table `sessions` contient le contenu de la session, écrit en JSON puis encodé en base64 : la commande ci-dessus le décode pour vous.
+> **La colonne payload.** La colonne `payload` de la table `sessions` contient le contenu de la session, écrit en JSON puis encodé en base64 : la commande ci-dessus le décode pour vous.
 
 **Observation 5 — La déconnexion.** Cliquez sur « Se déconnecter », puis relancez la commande qui affiche la table. Vous devez voir **une seule ligne**, avec `user_id` vide et un nouvel `id` : la session de l'utilisateur a été détruite côté serveur, et un cookie copié avant la déconnexion ne mène plus nulle part.
 
 > [!NOTE]
-> **Mémo — « Rester connecté ».** Si la case est cochée, Laravel pose en plus un cookie `remember_web_…`, valable plus d'un an, et enregistre un jeton dans la colonne `users.remember_token`. Il permet de rouvrir une session une fois la précédente expirée (120 minutes d'inactivité par défaut, réglage `SESSION_LIFETIME`).
+> **« Rester connecté ».** Si la case est cochée, Laravel pose en plus un cookie `remember_web_…`, valable plus d'un an, et enregistre un jeton dans la colonne `users.remember_token`. Il permet de rouvrir une session une fois la précédente expirée (120 minutes d'inactivité par défaut, réglage `SESSION_LIFETIME`).
 
 **Preuve**
 

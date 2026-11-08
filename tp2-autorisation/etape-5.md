@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
 ```
 
 > [!NOTE]
-> **Mémo — Pourquoi auth d'abord.** Les middlewares s'exécutent dans l'ordre. Si permission passait avant auth, un visiteur recevrait une 403 « accès refusé » au lieu d'une invitation à se connecter. Le message serait faux, et l'utilisateur ne saurait pas quoi faire.
+> **Pourquoi auth d'abord.** Les middlewares s'exécutent dans l'ordre. Si permission passait avant auth, un visiteur recevrait une 403 « accès refusé » au lieu d'une invitation à se connecter. Le message serait faux, et l'utilisateur ne saurait pas quoi faire.
 
 **Faire — compléter le tableau de bord.** Dans resources/views/dashboard.blade.php (créé au TP 1), ajoutez ces lignes entre le titre `<h1>` et le formulaire de déconnexion :
 
@@ -78,7 +78,7 @@ Route::middleware('auth')->group(function () {
 ```
 
 > [!NOTE]
-> **Mémo — Deux directives de Spatie pour adapter une vue.** Elles s'ajoutent à @guest et @auth, vues au TP 1.
+> **Deux directives de Spatie pour adapter une vue.** Elles s'ajoutent à @guest et @auth, vues au TP 1.
 >
 > | Directive | Quand elle affiche son contenu | Exemple d'usage |
 > | --- | --- | --- |
@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function () {
 > @role sert à personnaliser l'affichage : un message, une mise en page. Dès qu'un élément correspond à un droit (un lien vers une page protégée, un bouton d'action), utilisez @can avec la même permission que la route. @role ne plante pas pour un visiteur : Spatie vérifie d'abord que quelqu'un est connecté.
 
 > [!WARNING]
-> **Mémo — Masquer n'est pas protéger.** @can cache le lien, rien de plus : quiconque connaît l'URL peut la taper. La protection, c'est le middleware sur la route. Les deux doivent vérifier **la même permission**. Sinon, un utilisateur voit un lien qui mène à une 403, ou a accès à une page qu'aucun lien ne montre.
+> **Masquer n'est pas protéger.** @can cache le lien, rien de plus : quiconque connaît l'URL peut la taper. La protection, c'est le middleware sur la route. Les deux doivent vérifier **la même permission**. Sinon, un utilisateur voit un lien qui mène à une 403, ou a accès à une page qu'aucun lien ne montre.
 
 **Tests qui doivent passer :** test\_la\_matrice\_d\_acces\_est\_respectee (3 cas, un par profil), test\_un\_visiteur\_n\_atteint\_pas\_l\_administration, test\_la\_page\_d\_administration\_liste\_les\_utilisateurs, test\_l\_accueil\_s\_adapte\_au\_role, test\_le\_lien\_d\_administration\_suit\_la\_permission, test\_un\_autre\_role\_ayant\_la\_permission\_accede\_a\_l\_administration, test\_un\_autre\_role\_ayant\_la\_permission\_voit\_le\_lien\_d\_administration, test\_un\_compte\_sans\_role\_ne\_peut\_pas\_administrer, test\_retirer\_le\_role\_administrateur\_retire\_l\_acces. Les 20 tests du TP 1 doivent rester verts. Pour lancer les deux contrats ensemble (34 tests) : php artisan test --filter="AuthenticationTest|AuthorizationTest"
 
