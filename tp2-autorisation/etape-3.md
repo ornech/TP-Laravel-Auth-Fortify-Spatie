@@ -98,6 +98,14 @@ Si le client envoie `role=administrateur`, ce champ est **simplement absent** de
 
 ## La version sûre
 
+**Lancer (avant d'agir)**
+
+```bash
+php artisan test --filter="test_l_inscription_attribue_le_role_utilisateur|test_un_role_injecte_a_l_inscription_est_ignore"
+```
+
+Les deux tests sont rouges : `Le nouvel inscrit n'a pas reçu le rôle utilisateur.` et `Le compte n'a pas reçu le rôle utilisateur.` L'action CreateNewUser générée par Fortify crée le compte sans lui attribuer de rôle. Le second test est rouge pour cette raison, et non parce qu'une attaque réussit : l'exercice plus bas montre ce cas.
+
 **Faire** — dans `app/Actions/Fortify/CreateNewUser.php` (l'action que vous avez lue au TP 1), remplacez la méthode `create()` par :
 
 ```php
@@ -125,26 +133,23 @@ Si le client envoie `role=administrateur`, ce champ est **simplement absent** de
 
 **Pourquoi ça marche :** `$data` ne contient que `name`, `email` et `password`. Le champ `role` envoyé par le client est simplement **absent** de `$data`, et le rôle est fixé en dur par le serveur.
 
-**Faire — adapter le test d'inscription du TP 1.** Lancez le contrat du TP 1 :
+**Relancer** la même commande : les deux tests sont verts.
+
+**Lancer — le contrat du TP 1.** Le changement de CreateNewUser peut avoir des effets sur les tests du TP 1 :
 
 ```bash
 php artisan test --filter=AuthenticationTest
 ```
 
-Un test échoue : test\_l\_inscription\_cree\_un\_compte\_connecte, avec le message « There is no role named `utilisateur` for guard `web`. ». C'est normal : l'inscription attribue maintenant un rôle, et la base de ce test, préparée avec une simple factory, n'en contient aucun. Une règle de l'application a changé, la préparation du test doit changer avec elle. C'est la **seule** modification autorisée du contrat du TP 1 : dans tests/Feature/AuthenticationTest.php, ajoutez l'import `use Database\Seeders\RoleSeeder;`, puis, dans la méthode setUp(), juste après `parent::setUp();`, la ligne :
+Un test échoue : `test_l_inscription_cree_un_compte_connecte`, avec `received 500`. Sous ce message, la cause : ``There is no role named `utilisateur` for guard `web`.`` L'inscription attribue maintenant un rôle, et la base de ce test, préparée avec une simple factory, n'en contient aucun. Une règle de l'application a changé, la préparation du test doit changer avec elle.
+
+**Faire — adapter le test d'inscription du TP 1.** C'est la **seule** modification autorisée du contrat du TP 1 : dans tests/Feature/AuthenticationTest.php, ajoutez l'import `use Database\Seeders\RoleSeeder;`, puis, dans la méthode setUp(), juste après `parent::setUp();`, la ligne :
 
 ```php
         $this->seed(RoleSeeder::class);
 ```
 
-Relancez la commande : les 20 tests du TP 1 redeviennent verts.
-
-**Tests qui doivent passer :**
-
-```bash
-php artisan test --filter=test_l_inscription_attribue_le_role_utilisateur
-php artisan test --filter=test_un_role_injecte_a_l_inscription_est_ignore
-```
+**Relancer** la commande du contrat du TP 1 : les 20 tests redeviennent verts.
 
 ## Exercice : se faire attaquer soi-même
 
@@ -158,8 +163,8 @@ L'objectif : voir l'attaque réussir, puis vérifier que le test la détecte.
 
 Le serveur de développement doit tourner pour les points 3 et 5. S'il est arrêté, relancez `php artisan serve` dans un terminal dédié.
 
-1. Remplacez `$user->assignRole('utilisateur');` par la ligne vulnérable : `$user->assignRole($input['role'] ?? 'utilisateur');`
-2. Lancez `php artisan test --filter=test_un_role_injecte` : le test **doit échouer**. S'il passe, il ne protège rien : signalez-le.
+1. Dans `CreateNewUser.php`, remplacez `$user->assignRole('utilisateur');` par la ligne vulnérable : `$user->assignRole($input['role'] ?? 'utilisateur');`. Cette ligne lit le rôle dans `$input`, c'est-à-dire dans ce que le client a envoyé : le rôle `utilisateur` n'est utilisé que si le champ `role` est absent.
+2. Lancez `php artisan test --filter=test_un_role_injecte` : le test doit échouer, avec le message `Le rôle envoyé par le client a été accepté.` S'il passe, il ne protège rien : signalez-le.
 3. Dans le navigateur, allez sur `http://127.0.0.1:8000/register` et ouvrez les outils de développement (onglet Elements, ou Inspecteur sous Firefox). Trouvez la balise `<form>` et ajoutez à la main, **à l'intérieur** du formulaire :
 
    ```html

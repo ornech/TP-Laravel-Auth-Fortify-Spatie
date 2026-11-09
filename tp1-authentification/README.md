@@ -16,7 +16,7 @@ Qui êtes-vous ? Inscription, connexion, session.
 
 # Présentation
 
-À la fin de ce TP, votre application sait **qui est connecté** : on peut s'inscrire, se connecter, se déconnecter, et certaines pages sont réservées aux personnes connectées. Surtout, vous savez le prouver : chaque étape se termine par une preuve à produire, pas par « ça marche ».
+À la fin de ce TP, votre application sait **qui est connecté** : on peut s'inscrire, se connecter, se déconnecter, et certaines pages sont réservées aux personnes connectées. Chaque étape se termine par une preuve à produire.
 
 Vous saurez :
 

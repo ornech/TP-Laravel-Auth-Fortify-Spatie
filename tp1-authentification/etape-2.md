@@ -12,7 +12,13 @@ php artisan fortify:install
 php artisan migrate
 ```
 
-Cette migration ajoute à la table users les colonnes de la double authentification (two\_factor\_\*) et crée une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
+| Commande | Effet |
+| --- | --- |
+| composer require laravel/fortify | Télécharge le package dans vendor/. |
+| php artisan fortify:install | Copie dans votre projet config/fortify.php (liste des fonctionnalités), app/Providers/FortifyServiceProvider.php (enregistré dans bootstrap/providers.php), les actions de app/Actions/Fortify (dont CreateNewUser) et deux migrations. |
+| php artisan migrate | Exécute les migrations. |
+
+Ces migrations ajoutent à la table users les colonnes de la double authentification (two\_factor\_\*) et créent une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
 
 > [!NOTE]
 > **Double authentification et passkeys.** La **double authentification** demande un second code en plus du mot de passe (colonnes two\_factor\_\*). Les **passkeys** sont une connexion sans mot de passe, par clé cryptographique de l'appareil (table passkeys).
@@ -112,7 +118,7 @@ La ligne `-` est ce que le test attendait, la ligne `+` ce que l'application a f
 php artisan test --filter='test_la_matrice_d_acces_est_respectee.*visiteur sur /login'
 ```
 
-Ce cas de la matrice d'accès demande la page /login à un visiteur. Il est rouge : `Expected response status code [200] but received 500`. Sous ce message, la cause : `Target [Laravel\Fortify\Contracts\LoginViewResponse] is not instantiable`. Fortify ne fournit aucune page : il attend que vous lui disiez quelle vue afficher.
+Ce cas de la matrice d'accès demande la page /login à un visiteur. Il est rouge : `Expected response status code [200] but received 500`. Sous ce message, la cause : `Target [Laravel\Fortify\Contracts\LoginViewResponse] is not instantiable`. Fortify ne fournit pas de page : la vue à afficher se déclare dans la méthode boot() de FortifyServiceProvider.
 
 **Faire : déclarer les vues.**
 
@@ -123,7 +129,7 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
         Fortify::registerView(fn () => view('auth.register'));
 ```
 
-**Relancer** la même commande. Le test est toujours rouge, mais la cause a changé : `View [auth.login] not found`. Fortify sait maintenant quelle vue afficher, et le fichier n'existe pas. Un message qui change est le signe que vous avancez.
+**Relancer** la même commande. Le test est toujours rouge, mais la cause a changé : `View [auth.login] not found`. Fortify sait maintenant quelle vue afficher ; le fichier n'existe pas.
 
 > [!WARNING]
 > **Ce que boot() contient déjà, et pourquoi il ne faut pas l'écraser.**
@@ -138,7 +144,7 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 >
 > Les autres lignes de boot() (updateUserProfileInformationUsing, updateUserPasswordsUsing, resetUserPasswordsUsing, redirectUserForTwoFactorAuthenticationUsing et le limiteur passkeys) servent aux fonctionnalités désactivées à cette étape. Elles ne gênent pas : laissez-les en place et ne supprimez rien.
 >
-> Vous le vérifierez vous-même à la fin de l'étape (exercice « casser pour voir »).
+> Vous le vérifierez vous-même à la fin de l'étape (exercice « supprimer le contenu de boot() »).
 
 **Faire — la vue de connexion.** Créez resources/views/auth/login.blade.php à partir de ce modèle commenté :
 
@@ -316,7 +322,7 @@ Vous devez obtenir **17 tests verts et 3 rouges**. Les trois rouges sont les deu
 
 Souvenez-vous du premier lancement de l'étape : 7 verts, 13 rouges. Sur les 10 tests qui ont changé d'état depuis, chacun correspond à une action précise de cette étape : les features, la clé home, les vues, le tableau de bord.
 
-**Exercice — casser pour voir : boot().** Le tableau d'avertissement plus haut annonce des symptômes. Constatez-les.
+**Exercice — supprimer le contenu de boot().** Le tableau d'avertissement plus haut décrit des symptômes. Vérifiez-les.
 
 1. Mettez en commentaire (Ctrl+/) toutes les lignes de la méthode boot() de FortifyServiceProvider, sauf les deux lignes de déclaration des vues.
 2. **Prédire** : combien de tests de plus deviennent rouges ? Puis lancez le contrat.
@@ -341,9 +347,9 @@ php artisan serve
 Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
 
 1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register (mot de passe d'au moins 8 caractères). Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue. Les messages d'erreur de Laravel (mot de passe trop court, confirmation différente…) s'affichent en anglais : c'est normal, la langue de l'application est l'anglais par défaut.
-2. Retirez @csrf de la vue de connexion et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne, remettez @csrf, puis déconnectez-vous.
+2. Retirez @csrf de la vue de connexion (la directive qui ajoute au formulaire le champ caché \_token) et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne et, d'après le mémo sur la protection CSRF, par quel mécanisme. Remettez @csrf, puis déconnectez-vous.
 3. Envoyez la même requête sans navigateur, avec curl, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
-4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative.
+4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative avec un mauvais mot de passe.
 
 > [!NOTE]
 > **curl.** curl est un outil en ligne de commande qui envoie des requêtes HTTP sans navigateur. L'option -i affiche les en-têtes de la réponse, -X choisit la méthode (ici POST) et -d envoie des champs de formulaire.

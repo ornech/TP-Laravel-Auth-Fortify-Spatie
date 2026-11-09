@@ -5,6 +5,10 @@ Lisez d'abord le message d'erreur en entier : dans ce TP, il nomme presque toujo
 | Symptôme | Cause | Correction |
 | --- | --- | --- |
 | « Target class \[Database\\Seeders\\RoleSeeder\] does not exist. » | Le seeder n'est pas encore créé, ou son nom est faux | Étape 2 : php artisan make:seeder RoleSeeder |
+| « No query results for model \[App\\Models\\User\]. » dans AuthorizationTest | DemoUserSeeder est encore celui du TP 1 : il ne crée pas admin@exemple.test | Étape 2 : remplacer le contenu de DemoUserSeeder |
+| « Call to undefined method App\\Models\\User::hasRole() » (ou assignRole(), syncRoles()) | Le trait HasRoles n'est pas ajouté au modèle User | Étape 1 : import et trait dans app/Models/User.php |
+| « Le nouvel inscrit n'a pas reçu le rôle utilisateur. » | CreateNewUser n'attribue pas de rôle | Étape 3 : remplacer la méthode create() |
+| « View \[admin.users\] not found. » | La vue d'administration n'est pas créée | Étape 5 : resources/views/admin/users.blade.php |
 | « There is no role named \`utilisateur\` for guard \`web\`. » | Seeders non lancés, ou nom de rôle mal orthographié | php artisan db:seed --class=RoleSeeder, puis comparer les noms avec php artisan permission:show |
 | « A role \`utilisateur\` already exists for guard \`web\`. » | Role::create dans un seeder relancé | Role::findOrCreate |
 | « Target class \[permission\] does not exist. » | Alias non déclaré | Étape 4 |

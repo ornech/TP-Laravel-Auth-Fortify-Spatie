@@ -4,6 +4,8 @@ Le TP 2 est terminé quand les 14 tests de ce fichier passent, dont les 3 cases 
 
 Comme celui du TP 1, le fichier est commenté pour servir de modèle : lisez d'abord l'en-tête du [contrat du TP 1](../tp1-authentification/contrat-de-tests.md), qui présente les mécanismes de base. Celui-ci ajoute la préparation par seeders et les assertions propres aux rôles et aux permissions.
 
+Il s'utilise comme celui du TP 1 : à chaque étape, vous lancez le test concerné avant d'agir, vous lisez son message d'échec, vous agissez, puis vous relancez. La colonne « Étape » indique où vous le rencontrez pour la première fois.
+
 Ce que chaque test prouve
 
 | Étape | Test | Ce qu'il prouve |
@@ -44,7 +46,9 @@ use Tests\TestCase;
  * ============================================================================
  *
  * Même construction que le contrat du TP 1 : chaque test PRÉPARE, AGIT, puis
- * VÉRIFIE, et son nom est une phrase qui dit le comportement attendu.
+ * VÉRIFIE, et son nom est une phrase qui dit le comportement attendu. Comme au
+ * TP 1, on lance un test AVANT d'écrire le code qu'il protège, et on lit son
+ * message d'échec.
  *
  * Ce qui s'ajoute ici :
  *
@@ -104,8 +108,8 @@ class AuthorizationTest extends TestCase
         // un seul compte admin, et les permissions sont celles attendues.
         $this->assertSame(2, Role::count());
         $this->assertSame(1, User::where('email', 'admin@exemple.test')->count());
-        $this->assertTrue($this->admin->fresh()->can('gerer-utilisateurs'));
-        $this->assertFalse($this->utilisateur->fresh()->can('gerer-utilisateurs'));
+        $this->assertTrue($this->admin->fresh()->can('gerer-utilisateurs'), "L'administrateur doit avoir la permission gerer-utilisateurs.");
+        $this->assertFalse($this->utilisateur->fresh()->can('gerer-utilisateurs'), "L'utilisateur ne doit pas avoir la permission gerer-utilisateurs.");
     }
 
     // ---------- Étape 3 : inscription ----------
@@ -120,7 +124,7 @@ class AuthorizationTest extends TestCase
 
         $this->assertAuthenticated();
         $nouveau = User::where('email', 'nouveau@exemple.test')->firstOrFail();
-        $this->assertTrue($nouveau->hasRole('utilisateur'));
+        $this->assertTrue($nouveau->hasRole('utilisateur'), "Le nouvel inscrit n'a pas reçu le rôle utilisateur.");
     }
 
     /**
@@ -135,8 +139,8 @@ class AuthorizationTest extends TestCase
         // VÉRIFIER : il n'est pas devenu administrateur, il est simple utilisateur.
         $attaquant = User::where('email', 'attaquant@exemple.test')->firstOrFail();
         $this->assertFalse($attaquant->hasRole('administrateur'), 'Le rôle envoyé par le client a été accepté.');
-        $this->assertFalse($attaquant->can('gerer-utilisateurs'));
-        $this->assertTrue($attaquant->hasRole('utilisateur'));
+        $this->assertFalse($attaquant->can('gerer-utilisateurs'), 'Le compte injecté a la permission gerer-utilisateurs.');
+        $this->assertTrue($attaquant->hasRole('utilisateur'), "Le compte n'a pas reçu le rôle utilisateur.");
     }
 
     // ---------- Étape 5 : routes et vues ----------

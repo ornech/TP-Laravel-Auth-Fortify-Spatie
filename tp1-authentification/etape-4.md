@@ -85,12 +85,14 @@ La redirection du visiteur (`test_un_visiteur_est_redirige_vers_la_connexion`) e
 
 **Exercice — masquer ou protéger ?**
 
+Dans ce TP, « protéger une route » signifie lui associer un middleware qui vérifie une condition avant l'exécution du contrôleur. Pour /dashboard, c'est le middleware auth : il vérifie que la personne est connectée et, sinon, la renvoie vers /login. L'exercice supprime cette vérification, puis compare ce que montre l'écran (le lien masqué par @auth) et ce que fait la route.
+
 Cet exercice et l'observation de /accueil (plus bas) utilisent le navigateur : le serveur de développement doit tourner. S'il est arrêté, relancez php artisan serve dans un terminal dédié.
 
-1. Retirez temporairement la protection : remplacez Route::middleware('auth')->group(function () { par Route::group([], function () {.
-2. Ouvrez une fenêtre de navigation privée (vous y êtes visiteur) et tapez /dashboard dans la barre d'adresse : que voyez-vous ? Le lien « Tableau de bord » reste invisible pour un visiteur sur /accueil, mais l'adresse, elle, répond.
+1. Dans routes/web.php, la route /dashboard est déclarée dans un groupe créé par la ligne `Route::middleware('auth')->group(function () {`. L'appel `middleware('auth')` attache le middleware auth à toutes les routes du groupe. Remplacez cette ligne par `Route::group([], function () {` : le groupe existe toujours, avec les mêmes routes, mais sans middleware. Seule la vérification « la personne est connectée » disparaît.
+2. Ouvrez une fenêtre de navigation privée (vous y êtes visiteur). Sur /accueil, le lien « Tableau de bord » n'est pas affiché à un visiteur. Tapez ensuite /dashboard dans la barre d'adresse et notez ce que vous voyez.
 3. **Prédisez** d'abord quels tests vont échouer : écrivez votre liste dans PREUVES.md. Puis lancez php artisan test --filter=AuthenticationTest. Quels cas échouent, et votre liste était-elle juste ? PHPUnit affiche leur nom, mais il est coupé par « … » si la fenêtre du terminal est trop étroite : agrandissez-la. Le message de l'échec (code attendu, code reçu) aide aussi à les identifier.
-4. Remettez la protection. Tout redevient vert.
+4. Remettez la ligne d'origine, `Route::middleware('auth')->group(function () {`, et relancez les tests : 20 verts.
 
 **Preuve**
 
@@ -100,6 +102,6 @@ php artisan route:list --path=dashboard -v
 
 L'option -v affiche les middlewares de chaque route. Copiez la sortie et vos observations des points 2 et 3.
 
-Le test de la matrice a déjà vérifié les 6 cases : inutile de les refaire à la main. Il reste à voir ce que la matrice donne à l'écran. Ouvrez /accueil en visiteur (fenêtre de navigation privée), puis connecté avec alice@exemple.test, et notez ce qu'affiche la page pour chacun.
+Le test de la matrice a déjà vérifié les 6 cases : inutile de les refaire à la main. Il reste à observer l'affichage de /accueil. Ouvrez /accueil en visiteur (fenêtre de navigation privée), puis connecté avec alice@exemple.test, et notez ce qu'affiche la page pour chacun.
 
 > **Question 3.** Sur /accueil, le lien « Tableau de bord » est masqué aux visiteurs par @auth. Qu'est-ce qui empêche réellement un visiteur d'ouvrir /dashboard ? Comment l'avez-vous prouvé ?

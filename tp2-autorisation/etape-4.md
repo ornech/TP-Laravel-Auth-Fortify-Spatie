@@ -32,8 +32,23 @@ $middleware->alias([
 ```
 
 > [!WARNING]
-> **Une faute de frappe qui ne se voit pas.** Écrire Role\_or\_PermissionMiddleware::class ne provoque aucune erreur au démarrage : ::class produit seulement une chaîne de caractères, sans vérifier que la classe existe. Laravel ne cherche la classe qu'au moment où une route utilise l'alias. L'application plante alors avec « Target class \[...\] does not exist. », parfois des semaines plus tard. D'où la vérification dans vendor, plutôt que la confiance dans un exemple trouvé en ligne.
+> **Une faute dans le nom de la classe n'est pas signalée au démarrage.** Écrire Role\_or\_PermissionMiddleware::class ne provoque aucune erreur : ::class produit seulement une chaîne de caractères, sans vérifier que la classe existe. Laravel ne cherche la classe qu'au moment où une route utilise l'alias. L'application plante alors avec « Target class \[...\] does not exist. », éventuellement longtemps après l'écriture de la faute. C'est pourquoi les noms sont vérifiés dans vendor, et non recopiés d'un exemple.
 
-**Preuve** — la sortie de la commande ls (ou dir) ci-dessus.
+**Vérifier**
 
-**Question 3.** Si vous n'aviez pas regardé dans vendor, comment auriez-vous découvert une faute dans le nom d'une classe de middleware ? Quel type de test l'aurait révélée ?
+```bash
+php artisan tinker --execute="dump(array_map('class_exists', app(Illuminate\Contracts\Http\Kernel::class)->getMiddlewareAliases()));"
+```
+
+La commande liste tous les alias de middleware de l'application, avec `true` quand la classe existe et `false` sinon. Vous retrouvez des alias de Laravel (auth, guest, throttle…) et les trois vôtres : role, permission et role\_or\_permission, tous à `true`.
+
+**Preuve** — la sortie de la commande ls (ou dir) et celle de la commande tinker.
+
+**Exercice — introduire une faute dans le nom d'une classe.**
+
+1. **Prédire** : une faute dans le nom de la classe de l'alias role\_or\_permission fait-elle échouer des tests ? Aucune route du projet n'utilise encore cet alias.
+2. Dans bootstrap/app.php, remplacez RoleOrPermissionMiddleware par Role\_or\_PermissionMiddleware, dans l'import et dans l'alias.
+3. Relancez la commande tinker : la ligne role\_or\_permission affiche `false`. Lancez ensuite `php artisan test --filter=AuthorizationTest` : le résultat est identique à celui d'avant la faute (3 tests verts, 11 rouges, ceux des étapes 2 et 3 d'un côté, ceux de l'étape 5 de l'autre), parce qu'aucun test ne passe par cet alias.
+4. Remettez le nom d'origine et relancez la commande tinker : trois `true`.
+
+**Question 3.** La faute de l'exercice n'a fait échouer aucun test. Quel test l'aurait détectée ? Et si la faute avait porté sur l'alias permission, que se passerait-il à l'étape 5 ?

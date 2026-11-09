@@ -2,7 +2,7 @@
 
 À la fin de cette étape, vous saurez expliquer sur quelle donnée repose la phrase « cet utilisateur est connecté ».
 
-HTTP n'a pas de mémoire : chaque requête arrive seule, sans lien avec la précédente. Pourtant, /dashboard répond 200 à une personne connectée et 302 à un visiteur. Le serveur reconnaît la personne grâce à deux éléments : une **session**, enregistrée côté serveur, et un **cookie**, conservé par le navigateur. Cette étape vous les fait voir.
+HTTP n'a pas de mémoire : chaque requête arrive seule, sans lien avec la précédente. Pour répondre 200 à une personne connectée et 302 à un visiteur sur /dashboard, le serveur s'appuie sur deux éléments : une **session**, enregistrée côté serveur, et un **cookie**, conservé par le navigateur. Cette étape les montre dans la base et dans les en-têtes HTTP.
 
 ![Diagramme de séquence UML : la personne se connecte, le serveur crée la session et envoie le cookie, puis la personne ouvre une page protégée](images/sequence-connexion.png)
 
@@ -17,7 +17,7 @@ Le serveur de développement (étape 2) doit tourner, et vous devez être décon
 php artisan tinker --execute="dump(DB::table('users')->get(['id', 'email', 'password']));"
 ```
 
-La colonne `password` contient un hash (60 caractères, qui commence par `$2y$`), jamais le mot de passe. À la connexion, Laravel vérifie le mot de passe saisi contre ce hash : on ne « déchiffre » jamais le hash. Les deux comptes de démonstration ont le même mot de passe (`password`) et pourtant des hashes différents.
+La colonne `password` contient un hash (60 caractères, qui commence par `$2y$`), jamais le mot de passe. À la connexion, Laravel vérifie le mot de passe saisi contre ce hash : on ne « déchiffre » jamais le hash. Les deux comptes de démonstration ont le même mot de passe (`password`) et des hashes différents (voir le mémo ci-dessous).
 
 > [!NOTE]
 > **Hash, bcrypt et sel.** Un **hash** est l'empreinte irréversible d'un mot de passe : on peut vérifier qu'un mot de passe correspond à son hash, mais on ne peut pas retrouver le mot de passe à partir du hash. **bcrypt** est l'algorithme de hachage utilisé par Laravel. Le **sel** est une valeur aléatoire ajoutée au mot de passe avant le calcul et inscrite dans le hash : c'est pourquoi deux mots de passe identiques donnent deux hashes différents.
@@ -87,7 +87,7 @@ Les deux tests de cette étape sont **déjà verts**, depuis l'étape 2 : c'est 
 
 La dernière ligne rappelle qu'un test vert prouve ce qu'il vérifie, pas davantage : c'est pourquoi vous avez aussi regardé la table sessions. La question 2.3 ci-dessous explique pourquoi ce renouvellement compte.
 
-**Exercice — casser pour voir : une déconnexion « maison ».** Un test ne vaut que s'il peut échouer. Écrivez la déconnexion que beaucoup de débutants écriraient, et regardez ce que devient le contrat.
+**Exercice — remplacer la déconnexion de Fortify.** Un test ne vaut que s'il peut échouer. Cet exercice remplace la déconnexion de Fortify par une version qui retire l'utilisateur de la session sans détruire la session, puis observe les tests.
 
 1. **Prédire** : quel test va passer au rouge ?
 2. À la fin de routes/web.php, ajoutez ce bloc. Il porte le même nom et la même méthode que la route de Fortify : la dernière déclarée l'emporte.
@@ -102,7 +102,7 @@ La dernière ligne rappelle qu'un test vert prouve ce qu'il vérifie, pas davant
    ```
 
 3. Lancez le contrat. Vous obtenez 4 rouges au lieu de 3 : le nouveau est `test_la_deconnexion_detruit_la_session`, avec le message `La session aurait dû être vidée à la déconnexion.` Auth::logout() retire seulement l'utilisateur de la session ; le reste de la session survit (ici le marqueur du test, dans une application réelle tout ce qu'elle y a rangé). Fortify, lui, détruit toute la session.
-4. `test_la_deconnexion_n_accepte_que_post` reste vert : votre route est bien en POST. Chaque test protège une chose précise.
+4. `test_la_deconnexion_n_accepte_que_post` reste vert : votre route est bien en POST. Ce test porte sur la méthode HTTP, pas sur la session.
 5. Retirez le bloc et relancez : 17 verts, 3 rouges.
 
 **Preuve.** Dans PREUVES.md, copiez le message d'échec de l'étape 3 (rouge) et la ligne de résultat avant et après.

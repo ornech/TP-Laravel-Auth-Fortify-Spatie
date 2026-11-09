@@ -1,18 +1,24 @@
 # Étape 1 : Installer Spatie et préparer le modèle User
 
+À la fin de cette étape, Spatie est installé, ses cinq tables existent et le modèle User dispose des méthodes de rôles.
+
 Ce TP continue le projet tp-auth du [TP 1](../tp1-authentification/README.md) : placez-vous dans son dossier. Avant de commencer, les 20 tests du TP 1 doivent être verts (php artisan test --filter=AuthenticationTest).
 
 ## Installer le contrat de tests
 
-Comme au TP 1, vous commencez par les tests. Créez tests/Feature/AuthorizationTest.php et copiez-y, sans rien changer, le fichier donné dans le [Contrat de tests](contrat-de-tests.md).
+Comme au TP 1, vous commencez par les tests et vous suivez la même boucle : prédire, lancer le test avant d'agir, lire le message d'échec, agir, relancer. Créez tests/Feature/AuthorizationTest.php et copiez-y, sans rien changer, le fichier donné dans le [Contrat de tests](contrat-de-tests.md).
 
-**Preuve**
+**Lancer**
 
 ```bash
 php artisan test --filter=AuthorizationTest
 ```
 
-Les 14 tests échouent, avec le message « Target class [`Database\Seeders\RoleSeeder`] does not exist. » : les seeders et Spatie n'existent pas encore. Les 20 tests du TP 1 doivent, eux, rester verts tout au long du TP 2. Une seule adaptation de leur préparation sera nécessaire, à l'étape 3, et elle y est expliquée.
+Les 14 tests échouent avec le même message : `Target class [Database\Seeders\RoleSeeder] does not exist.` La méthode setUp() du contrat lance RoleSeeder avant chaque test. Tant que cette classe n'existe pas (étape 2), aucun test n'exécute son propre code : un seul message pour 14 tests.
+
+Les 20 tests du TP 1 doivent, eux, rester verts tout au long du TP 2. Une seule adaptation de leur préparation sera nécessaire, à l'étape 3, et elle y est expliquée.
+
+**Preuve.** Dans PREUVES.md, notez le message et le nombre de tests rouges.
 
 ## Installer Spatie
 
@@ -35,7 +41,7 @@ Les permissions ne sont pas stockées sur le modèle User, afin de permettre de 
 
 Le check ($user->can('edit posts')) vérifie à la fois les permissions directes (model\_has\_permissions) et celles héritées via les rôles (model\_has\_roles → role\_has\_permissions).
 
-Le tout est mis en cache : Spatie charge les permissions en mémoire à la première vérification et invalide le cache à chaque création/modification de rôle ou permission.
+Spatie met les permissions en cache : il les charge en mémoire à la première vérification et invalide le cache à chaque création ou modification de rôle ou de permission.
 
 **En résumé (le flux)**
 
@@ -59,11 +65,28 @@ php artisan config:clear
 php artisan migrate
 ```
 
-Dans app/Models/User.php, ajoutez **l'import** et le **trait** HasRoles.
+| Commande | Effet |
+| --- | --- |
+| composer require | Télécharge le package dans vendor/. Laravel détecte son service provider et l'enregistre. |
+| vendor:publish --provider=… | Copie dans votre projet le fichier config/permission.php (réglages : cache, noms des tables) et une migration dans database/migrations. |
+| config:clear | Supprime la configuration mise en cache, s'il y en a une, pour que Laravel lise le nouveau fichier config/permission.php. |
+| migrate | Exécute la migration : crée les cinq tables. |
+
+**Lancer (avant d'agir).** Les tables existent. Appelez une méthode de Spatie sur un compte existant :
+
+```bash
+php artisan tinker --execute="var_dump(App\Models\User::first()->hasRole('administrateur'));"
+```
+
+Le message est `Call to undefined method App\Models\User::hasRole().` Les méthodes de Spatie n'existent pas encore sur le modèle User.
+
+**Faire.** Dans app/Models/User.php, ajoutez **l'import** et le **trait** HasRoles.
 
 ![](images/etape1-user-hasroles.png)
 
-Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasRole(), syncRoles()… La méthode can(), déjà présente, se met à tenir compte des permissions Spatie (voir le mémo).
+**Relancer** la même commande : elle affiche `bool(false)`. La méthode existe, et le compte n'a pas le rôle administrateur (aucun rôle n'existe encore).
+
+Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasRole(), syncRoles()… La méthode can(), déjà présente, tient alors compte des permissions Spatie (voir le mémo).
 
 > [!NOTE]
 > **Le trait *HasRoles***
@@ -72,15 +95,15 @@ Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasR
 >
 > Le **trait** contourne cette limite. C’est un bloc de méthodes que PHP recopie dans la classe qui l’utilise. En écrivant *use HasRoles;* dans *User*, le modèle reçoit *roles()*, *assignRole()*, *hasRole()*, *syncRoles()*, *givePermissionTo()*… sans qu’on réécrive une ligne.
 >
-> *can()*, lui, existe déjà dans *User* : il vient du trait *Authorizable*, inclus dans *Authenticatable*. Spatie se branche sur ce système d’autorisation de Laravel, en s’appuyant sur les méthodes de *HasRoles*. Sans le trait, *can()* répond *false* pour les permissions Spatie, **sans aucune erreur**.
+> *can()*, lui, existe déjà dans *User* : il vient du trait *Authorizable*, inclus dans *Authenticatable*. Il interroge le **Gate** de Laravel, le composant qui décide des autorisations. Spatie ajoute au Gate un contrôle préalable qui appelle la méthode *checkPermissionTo()* du trait *HasRoles*. Sans le trait, cette méthode n’existe pas : *can()* répond *false* pour les permissions Spatie, **sans aucune erreur**.
 
 > [!WARNING]
 > Attention aux deux *use* : celui en haut du fichier **importe un nom** (permet d’écrire ***HasRoles*** au lieu de ***\\Spatie\\Permission\\Traits\\HasRoles***), celui dans la classe **inclut le trait** **à la classe User**.
 
-**Test**
+**Preuve**
 
 ```bash
 php artisan db:table model_has_roles
 ```
 
-Copiez la liste des colonnes dans PREUVES.md.
+Copiez la liste des colonnes dans PREUVES.md et indiquez, pour chacune des trois colonnes (role\_id, model\_type, model\_id), ce qu'elle désigne.

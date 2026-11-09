@@ -31,7 +31,7 @@ Vous commencez par les tests : ils décrivent ce que l'application devra faire �
 > 4. **Agir** : faire la modification demandée.
 > 5. **Relancer** : le message change, puis le test passe au vert.
 >
-> Un test n'est pas là pour tout valider à la fin : c'est le message d'un test rouge qui dit quoi faire ensuite. Et un test déjà vert avant votre action ne prouve pas votre travail : il décrit un comportement qui existait déjà.
+> Un test déjà vert avant votre action ne prouve pas votre travail : il décrit un comportement qui existait déjà.
 
 > [!NOTE]
 > Lancez les commandes de test dans un terminal ordinaire. Si vous les lancez depuis un assistant IA (Claude Code, Cursor…), la sortie peut s'afficher en JSON au lieu du compte rendu habituel : c'est le comportement du package laravel/pao, inclus dans le squelette Laravel 13. Voir le [dépannage](depannage.md).
@@ -44,13 +44,13 @@ Vous commencez par les tests : ils décrivent ce que l'application devra faire �
 php artisan test --filter=AuthenticationTest
 ```
 
-Les 20 tests échouent : les routes, les pages et les comptes de démonstration qu'ils utilisent n'existent pas encore. Vingt rouges d'un coup ne se lisent pas : on lit un échec à la fois. Lancez donc le premier test seul :
+Les 20 tests échouent : les routes, les pages et les comptes de démonstration qu'ils utilisent n'existent pas encore. Lisez les échecs un par un : lancez le premier test seul.
 
 ```bash
 php artisan test --filter=test_les_comptes_de_demonstration_ne_sont_pas_crees_en_production
 ```
 
-Un échec de test se lit en trois morceaux : le **nom** du test (une phrase qui dit le comportement attendu), le **message** (ce qui était attendu et ce qui est arrivé) et la **ligne** du test qui a échoué, avec son contexte. Ici, le message est `Class "Database\Seeders\DemoUserSeeder" not found` : le test utilise une classe qui n'existe pas encore. La consigne est dans le message.
+Un échec de test se lit en trois morceaux : le **nom** du test (une phrase qui dit le comportement attendu), le **message** (ce qui était attendu et ce qui est arrivé) et la **ligne** du test qui a échoué, avec son contexte. Ici, le message est `Class "Database\Seeders\DemoUserSeeder" not found` : le test utilise une classe qui n'existe pas encore.
 
 Les autres messages que vous allez rencontrer dans ce TP se lisent de la même façon :
 
@@ -159,9 +159,9 @@ php artisan test --filter=test_les_comptes_de_demonstration_ne_sont_pas_crees_en
 
 Le message `Class "Database\Seeders\DemoUserSeeder" not found` a disparu et le test est vert : c'est le premier passage du rouge au vert du TP. Ce test fait croire à l'application qu'elle tourne en production, lance DemoUserSeeder, et vérifie qu'aucun compte n'a été créé.
 
-**Exercice — casser pour voir.** Un test qui ne peut jamais échouer ne prouve rien : vérifiez que celui-ci peut échouer.
+**Exercice — vérifier que le test peut échouer.** Un test qui ne peut jamais échouer ne prouve rien. Pour vérifier celui-ci, supprimez la condition qu'il protège.
 
-1. Dans DemoUserSeeder, mettez en commentaire le bloc `if (! app()->environment(['local', 'testing'])) { … }` (de la ligne du `if` jusqu'à son accolade fermante).
+1. Dans DemoUserSeeder, mettez en commentaire le bloc `if (! app()->environment(['local', 'testing'])) { … }` (de la ligne du `if` jusqu'à son accolade fermante). Ce bloc interrompt le seeder quand l'environnement n'est ni local ni testing ; sans lui, les comptes sont créés dans tous les environnements.
 2. Relancez le test. Le message est `DemoUserSeeder a créé des comptes en production.`, suivi de `Failed asserting that 2 is identical to 1`. Le test partait avec 1 compte (alice, créée avant chaque test) : le seeder en a ajouté un, donc 2.
 3. Remettez le bloc, relancez : le test redevient vert.
 

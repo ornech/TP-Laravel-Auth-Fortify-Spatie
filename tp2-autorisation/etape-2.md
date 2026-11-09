@@ -1,6 +1,16 @@
 # Étape 2 : Créer les rôles, la permission et les comptes de démonstration
 
-Deux seeders, deux responsabilités. RoleSeeder crée la structure des droits, utile partout, y compris en production. DemoUserSeeder, déjà créé au TP 1, change de rôle : il crée maintenant deux comptes de démonstration **avec leur rôle**. Ces comptes ne doivent jamais exister en production.
+À la fin de cette étape, la base contient les rôles utilisateur et administrateur, la permission gerer-utilisateurs et deux comptes de démonstration, et les seeders peuvent être relancés sans erreur.
+
+RoleSeeder crée les rôles et la permission : ils sont nécessaires partout, y compris en production. DemoUserSeeder, créé au TP 1, crée désormais deux comptes de démonstration **avec leur rôle**. Ces comptes ne doivent pas exister en production.
+
+**Lancer (avant d'agir)**
+
+```bash
+php artisan test --filter=test_les_seeders_sont_rejouables
+```
+
+Le test est rouge avec `Target class [Database\Seeders\RoleSeeder] does not exist.` : le seeder n'existe pas.
 
 ## **Seeder RoleSeeder**
 
@@ -35,6 +45,8 @@ class RoleSeeder extends Seeder
     }
 }
 ```
+
+**Relancer** la même commande. Le test est toujours rouge, avec un autre message : `No query results for model [App\Models\User].` Le contrat lance RoleSeeder puis DemoUserSeeder, puis cherche le compte admin@exemple.test. DemoUserSeeder est encore celui du TP 1 : il crée alice et bob, pas ce compte.
 
 ## **Seeder DemoUserSeeder**
 
@@ -76,6 +88,8 @@ class DemoUserSeeder extends Seeder
 }
 ```
 
+**Relancer** la même commande : le test est vert.
+
 **Faire.** Dans database/seeders/DatabaseSeeder.php (modifié au TP 1), **remplacez le contenu du fichier** par celui-ci (exception à la règle d'or) : il lance maintenant RoleSeeder, puis DemoUserSeeder.
 
 ```php
@@ -103,12 +117,14 @@ class DatabaseSeeder extends Seeder
 }
 ```
 
+Les tests lancent les seeders directement : ce fichier n'a pas d'effet sur eux. Il sert aux commandes migrate:fresh --seed et db:seed.
+
 L’ordre compte : DemoUserSeeder attribue des rôles que RoleSeeder doit avoir créés.
 
 Les comptes alice et bob du TP 1 disparaissent au prochain migrate:fresh : ils ne servaient qu'à l'authentification. Les deux comptes de ce TP les remplacent.
 
 > [!NOTE]
-> **Un seeder doit pouvoir être rejouable.** On est souvent amené à relancer un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
+> **Un seeder doit pouvoir être rejouable.** On relance souvent un seeder, notamment après un migrate:fresh. Il doit donc décrire l’état final des données présentes dans une table, et non une simple suite d'ajouts. On dit qu'il est idempotent.
 >
 > Ici, findOrCreate et firstOrCreate créent ce qui manque sans toucher à ce qui existe déjà, et syncPermissions et syncRoles imposent la liste exacte des permissions et des rôles. Un compte de démonstration déjà présent garde donc son nom et son mot de passe d'origine.
 
@@ -120,13 +136,17 @@ php artisan permission:show
 php artisan db:seed
 ```
 
-migrate:fresh --seed supprime toutes les tables, les recrée, puis lance DatabaseSeeder, donc RoleSeeder puis DemoUserSeeder. permission:show affiche la matrice rôles × permissions. Le second lancement des seeders (db:seed) doit se terminer sans erreur. Copiez les sorties de permission:show et du second lancement dans PREUVES.md.
+migrate:fresh --seed supprime toutes les tables, les recrée, puis lance DatabaseSeeder, donc RoleSeeder puis DemoUserSeeder. permission:show affiche la matrice rôles × permissions : la permission gerer-utilisateurs ne doit être cochée que pour administrateur. Le second lancement des seeders (db:seed) doit se terminer sans erreur. Copiez les sorties de permission:show et du second lancement dans PREUVES.md.
 
-**Test qui doit passer :**
+**Exercice — remplacer findOrCreate par create.** Vérifiez ce que garantit findOrCreate.
 
-```bash
-php artisan test --filter=test_les_seeders_sont_rejouables
-```
+1. **Prédire** : un seeder qui crée un rôle avec `Role::create` réussit-il au premier lancement ? Au second ?
+2. Dans RoleSeeder, remplacez la ligne `Role::findOrCreate('utilisateur', 'web');` par `Role::create(['name' => 'utilisateur', 'guard_name' => 'web']);`. findOrCreate renvoie le rôle s'il existe déjà. create essaie toujours de l'insérer, et Spatie refuse un second rôle de même nom (name et guard\_name sont uniques).
+3. Lancez `php artisan test --filter=test_les_seeders_sont_rejouables`. Le test est rouge avec ``A role `utilisateur` already exists for guard `web`.`` : setUp() a lancé RoleSeeder une première fois, le test le relance.
+4. Lancez `php artisan db:seed` : la même erreur apparaît, parce que la base contient déjà le rôle.
+5. Remettez la ligne d'origine et relancez le test : il est vert.
+
+**Preuve.** Copiez le message d'échec de l'étape 3.
 
 > **Question 1.**
 >
