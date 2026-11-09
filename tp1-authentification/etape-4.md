@@ -4,6 +4,19 @@
 
 Le DashboardController, la route /dashboard (dans un groupe protégé par le middleware auth) et la déconnexion existent déjà (étape 2).
 
+**Lancer (avant d'agir)**
+
+```bash
+php artisan test --filter=AuthenticationTest
+```
+
+Vous retrouvez 17 tests verts et 3 rouges. Les trois rouges sont ceux qui concernent /accueil. Lisez-les :
+
+- les deux cas de la matrice (« visiteur sur /accueil » et « connecté sur /accueil ») disent `Expected response status code [200] but received 404` : la page n'existe pas ;
+- `test_l_accueil_s_adapte_au_profil` n'affiche qu'un long bloc de HTML, celui de la page d'erreur. Ne le lisez pas : un message de test n'est pas toujours le plus parlant, les cas de la matrice nomment le code.
+
+Les 4 autres cases de la matrice (/login et /dashboard, pour les deux profils) sont déjà vertes : ce sont vos routes de l'étape 2.
+
 **Faire — la route de la page d'accueil.** Dans routes/web.php, ajoutez la route /accueil, qui est publique. Les routes existantes restent en place. Voici ce que le fichier contient à la fin de l'étape (la ligne ajoutée est signalée) :
 
 ```php
@@ -17,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 ```
+
+**Relancer**, avant de créer la vue : `php artisan test --filter='test_la_matrice_d_acces_est_respectee.*/accueil'`. Les deux cas restent rouges, mais le message a changé : `received 500`, avec la cause en dessous, `View [accueil] not found`. La route existe (plus de 404), il manque la vue.
 
 **Faire — la page d'accueil, qui change selon que l'on est connecté.** Créez resources/views/accueil.blade.php :
 
@@ -58,7 +73,15 @@ Route::middleware('auth')->group(function () {
 > [!NOTE]
 > **Pourquoi /login renvoie vers /dashboard.** La matrice d'accès annonce qu'une personne déjà connectée qui demande /login reçoit une 302 vers /dashboard. Ce n'est pas la clé home de Fortify qui décide : elle ne sert qu'après une connexion ou une inscription réussie. C'est le middleware guest de Laravel : il cherche d'abord une route **nommée** dashboard, puis home. À défaut, il cherche une route dont l'**URI** est /dashboard, puis /home, et sinon renvoie vers /. Votre route /dashboard répond aux deux critères : son nom et son URI. Pour que /login ne renvoie plus vers /dashboard, il faudrait changer les deux. Notez enfin que le test ne vérifie que le code 302 de /login, pas la destination de la redirection.
 
-**Tests qui doivent passer :** test\_la\_matrice\_d\_acces\_est\_respectee (6 cas, un par case de la matrice), test\_un\_visiteur\_est\_redirige\_vers\_la\_connexion, test\_l\_accueil\_s\_adapte\_au\_profil. Le contrat entier (20 tests) doit maintenant être vert.
+**Relancer**
+
+```bash
+php artisan test --filter=AuthenticationTest
+```
+
+Le contrat entier est vert : **20 tests sur 20**. Sur les 3 rouges du début de l'étape, ce sont les trois que vous venez de faire passer ; les 17 autres étaient déjà verts. Copiez la ligne de résultat dans PREUVES.md.
+
+La redirection du visiteur (`test_un_visiteur_est_redirige_vers_la_connexion`) et la matrice sont vertes depuis l'étape 2 : ce que vous ajoutez ici, c'est surtout l'**exercice** ci-dessous, qui vérifie que ces tests savent échouer.
 
 **Exercice — masquer ou protéger ?**
 
@@ -66,7 +89,7 @@ Cet exercice et l'observation de /accueil (plus bas) utilisent le navigateur : l
 
 1. Retirez temporairement la protection : remplacez Route::middleware('auth')->group(function () { par Route::group([], function () {.
 2. Ouvrez une fenêtre de navigation privée (vous y êtes visiteur) et tapez /dashboard dans la barre d'adresse : que voyez-vous ? Le lien « Tableau de bord » reste invisible pour un visiteur sur /accueil, mais l'adresse, elle, répond.
-3. Lancez php artisan test --filter=AuthenticationTest. Quels cas échouent ? PHPUnit affiche leur nom, mais il est coupé par « … » si la fenêtre du terminal est trop étroite : agrandissez-la. Le message de l'échec (code attendu, code reçu) aide aussi à les identifier.
+3. **Prédisez** d'abord quels tests vont échouer : écrivez votre liste dans PREUVES.md. Puis lancez php artisan test --filter=AuthenticationTest. Quels cas échouent, et votre liste était-elle juste ? PHPUnit affiche leur nom, mais il est coupé par « … » si la fenêtre du terminal est trop étroite : agrandissez-la. Le message de l'échec (code attendu, code reçu) aide aussi à les identifier.
 4. Remettez la protection. Tout redevient vert.
 
 **Preuve**

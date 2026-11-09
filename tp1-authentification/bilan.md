@@ -3,9 +3,11 @@
 Cochez une case seulement si la preuve correspondante figure dans PREUVES.md.
 
 - ☐ php artisan test --filter=AuthenticationTest : les 20 tests sont verts
+- ☐ Pour chaque étape, PREUVES.md contient un test rouge (message copié, cause expliquée en une phrase) puis le même test vert
 - ☐ Je relance les seeders sans erreur, et j'explique pourquoi DemoUserSeeder ne s'exécute pas en production
-- ☐ Je montre avec route:list les routes exposées par Fortify, et je justifie chaque fonctionnalité active (et je sais pourquoi les routes confirm-password restent présentes)
+- ☐ Je montre avec route:list les routes exposées par Fortify (11 lignes, aucune route passkeys), et je justifie chaque fonctionnalité active (et je sais pourquoi les routes confirm-password restent présentes)
 - ☐ Je montre dans la table sessions ce qui change à la connexion et à la déconnexion, et j'explique ce que contient le cookie de session
+- ☐ J'ai cassé volontairement le code (garde du seeder, méthode boot(), déconnexion « maison ») et noté chaque fois quels tests passent au rouge, avec quel message
 - ☐ J'ai retiré le middleware auth de /dashboard, constaté ce qu'obtient un visiteur, et identifié les tests qui échouent
 - ☐ Je montre que /accueil affiche un contenu différent pour le visiteur et pour la personne connectée
 - ☐ Je provoque et j'explique 302, 405, 419 et 429 sur mon application
@@ -21,7 +23,8 @@ Questions de restitution (à l'oral, sans notes)
 7. @auth masque le lien vers le tableau de bord. Qu'est-ce qui protège réellement la page, et comment l'avez-vous prouvé ?
 8. Pourquoi des comptes de démonstration au mot de passe connu ne doivent-ils pas exister en production ? Comment DemoUserSeeder s'en protège-t-il ?
 9. Un test vert prouve-t-il que le code est correct ? Appuyez-vous sur l'exercice de l'étape 4.
+10. Juste après l'installation de Fortify, avant toute configuration, 7 tests sur 20 étaient déjà verts. Que prouvent-ils, et à quoi servent-ils ensuite ?
 
-**Limites du contrat.** Un test vert prouve ce qu'il vérifie, pas davantage. Les 20 tests du contrat resteraient verts si l'on : retirait l'attribut HttpOnly du cookie de session, allongeait la durée de vie de la session à plusieurs mois, ou supprimait les règles de complexité du mot de passe. Chacune de ces variantes a été essayée : aucune ne fait échouer le contrat. À l'inverse, trois erreurs plausibles sont détectées, parce qu'un test a été écrit pour chacune : compter les tentatives de connexion par adresse IP seule, réactiver la modification du profil ou du mot de passe, ou supprimer la garde d'environnement de DemoUserSeeder. Savoir ce qu'un test ne couvre pas fait partie de la preuve.
+**Limites du contrat.** Un test vert prouve ce qu'il vérifie, pas davantage. Les 20 tests du contrat resteraient verts si l'on : retirait l'attribut HttpOnly du cookie de session, allongeait la durée de vie de la session à plusieurs mois, supprimait les règles de complexité du mot de passe, ou cessait de renouveler l'identifiant de session à la connexion. Chacune de ces variantes a été essayée : aucune ne fait échouer le contrat. À l'inverse, plusieurs erreurs plausibles sont détectées, parce qu'un test a été écrit pour chacune : compter les tentatives de connexion par adresse IP seule, réactiver la modification du profil, du mot de passe ou les passkeys, supprimer la garde d'environnement de DemoUserSeeder, écraser la méthode boot() de FortifyServiceProvider, ou écrire une déconnexion qui n'invalide pas la session. Savoir ce qu'un test ne couvre pas fait partie de la preuve.
 
 La suite : le [TP 2](../tp2-autorisation/README.md) ajoute la question « avez-vous le droit ? ».

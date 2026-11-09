@@ -17,21 +17,53 @@ Créez aussi à la racine du projet un fichier vide **PREUVES.md** : vous y copi
 
 ## Installer le contrat de tests
 
-Vous commencez par les tests : ils décrivent ce que l'application devra faire à la fin. Au départ, ils échouent tous. Votre travail consiste à les faire passer un par un, sans jamais les modifier. Créez tests/Feature/AuthenticationTest.php et copiez-y, sans rien changer, le fichier donné dans le [Contrat de tests](contrat-de-tests.md). Ces tests utilisent une base SQLite en mémoire, déjà configurée dans phpunit.xml : ils ne touchent pas à votre base de développement.
+Vous commencez par les tests : ils décrivent ce que l'application devra faire à la fin. Au départ, ils échouent tous. Votre travail consiste à les faire passer, sans jamais les modifier, en suivant partout dans ce TP la même boucle. Créez tests/Feature/AuthenticationTest.php et copiez-y, sans rien changer, le fichier donné dans le [Contrat de tests](contrat-de-tests.md). Ces tests utilisent une base SQLite en mémoire, déjà configurée dans phpunit.xml : ils ne touchent pas à votre base de développement.
 
 > [!NOTE]
 > **PHPUnit.** PHPUnit est l'outil de test de PHP : c'est lui qui exécute les tests, lancé par la commande php artisan test.
 
-**Preuve**
+> [!NOTE]
+> **La boucle de test.** À chaque action importante du TP, vous répétez cinq gestes :
+>
+> 1. **Prédire** : le test va-t-il être rouge ou vert, et pourquoi ?
+> 2. **Lancer** le test concerné, avant d'agir.
+> 3. **Lire** le message d'échec : il nomme presque toujours ce qui manque.
+> 4. **Agir** : faire la modification demandée.
+> 5. **Relancer** : le message change, puis le test passe au vert.
+>
+> Un test n'est pas là pour tout valider à la fin : c'est le message d'un test rouge qui dit quoi faire ensuite. Et un test déjà vert avant votre action ne prouve pas votre travail : il décrit un comportement qui existait déjà.
+
+> [!NOTE]
+> Lancez les commandes de test dans un terminal ordinaire. Si vous les lancez depuis un assistant IA (Claude Code, Cursor…), la sortie peut s'afficher en JSON au lieu du compte rendu habituel : c'est le comportement du package laravel/pao, inclus dans le squelette Laravel 13. Voir le [dépannage](depannage.md).
+
+## Lire un échec
+
+**Lancer**
 
 ```bash
 php artisan test --filter=AuthenticationTest
 ```
 
-Les 20 tests échouent : les routes, les pages et les comptes de démonstration qu'ils utilisent n'existent pas encore.
+Les 20 tests échouent : les routes, les pages et les comptes de démonstration qu'ils utilisent n'existent pas encore. Vingt rouges d'un coup ne se lisent pas : on lit un échec à la fois. Lancez donc le premier test seul :
 
-> [!NOTE]
-> Lancez les commandes de test dans un terminal ordinaire. Si vous les lancez depuis un assistant IA (Claude Code, Cursor…), la sortie peut s'afficher en JSON au lieu du compte rendu habituel : c'est le comportement du package laravel/pao, inclus dans le squelette Laravel 13. Voir le [dépannage](depannage.md).
+```bash
+php artisan test --filter=test_les_comptes_de_demonstration_ne_sont_pas_crees_en_production
+```
+
+Un échec de test se lit en trois morceaux : le **nom** du test (une phrase qui dit le comportement attendu), le **message** (ce qui était attendu et ce qui est arrivé) et la **ligne** du test qui a échoué, avec son contexte. Ici, le message est `Class "Database\Seeders\DemoUserSeeder" not found` : le test utilise une classe qui n'existe pas encore. La consigne est dans le message.
+
+Les autres messages que vous allez rencontrer dans ce TP se lisent de la même façon :
+
+| Message | Ce qu'il veut dire |
+| --- | --- |
+| `Expected response status code [200] but received 404` | Le test a demandé une page et l'application répond « introuvable » : la route n'existe pas encore |
+| `Expected response status code [200] but received 500` | La route existe, mais elle plante : un message `The following exception occurred…` en dessous nomme la cause |
+| `Session is missing expected key [errors]` | Le test attendait un refus de saisie (une erreur sur un champ) : aucune route n'a traité le formulaire |
+| `Failed asserting that true is false` précédé d'une phrase | Une chose existe alors qu'elle devrait être absente ; la phrase dit laquelle |
+
+**Preuve**
+
+Dans PREUVES.md, copiez le message d'échec du test du seeder et, en une phrase, ce qu'il demande de faire. Relevez aussi le nombre de tests rouges de la commande complète.
 
 ## Créer les comptes de démonstration
 
@@ -119,10 +151,18 @@ migrate:fresh --seed supprime toutes les tables, les recrée, puis lance les see
 > [!NOTE]
 > **tinker.** tinker est la console interactive de Laravel : elle exécute du code PHP dans le contexte de votre application. Avec l'option --execute, elle exécute l'instruction donnée puis rend la main ; ici, elle liste les adresses e-mail de la table users.
 
-**Test qui doit passer :**
+**Relancer le test du seeder**
 
 ```bash
 php artisan test --filter=test_les_comptes_de_demonstration_ne_sont_pas_crees_en_production
 ```
 
-Ce test fait croire à l'application qu'elle tourne en production, lance DemoUserSeeder, et vérifie qu'aucun compte n'a été créé.
+Le message `Class "Database\Seeders\DemoUserSeeder" not found` a disparu et le test est vert : c'est le premier passage du rouge au vert du TP. Ce test fait croire à l'application qu'elle tourne en production, lance DemoUserSeeder, et vérifie qu'aucun compte n'a été créé.
+
+**Exercice — casser pour voir.** Un test qui ne peut jamais échouer ne prouve rien : vérifiez que celui-ci peut échouer.
+
+1. Dans DemoUserSeeder, mettez en commentaire le bloc `if (! app()->environment(['local', 'testing'])) { … }` (de la ligne du `if` jusqu'à son accolade fermante).
+2. Relancez le test. Le message est `DemoUserSeeder a créé des comptes en production.`, suivi de `Failed asserting that 2 is identical to 1`. Le test partait avec 1 compte (alice, créée avant chaque test) : le seeder en a ajouté un, donc 2.
+3. Remettez le bloc, relancez : le test redevient vert.
+
+**Preuve.** Dans PREUVES.md, copiez la ligne de résultat du test (`Tests: … passed`) avant l'exercice, pendant (rouge, avec son message) et après.

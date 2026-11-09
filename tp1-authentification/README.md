@@ -24,7 +24,7 @@ Vous saurez :
 2. Expliquer ce qui rend un utilisateur « connecté » : une session enregistrée côté serveur et un cookie côté navigateur, et le montrer dans la base.
 3. Protéger une page avec le middleware auth, et adapter le contenu d'une vue selon que la personne est connectée ou non.
 4. Expliquer et provoquer les réponses 302, 405, 419 et 429 de votre application.
-5. Faire passer des tests qui servent de preuve, et vérifier qu'ils détectent bien une faille.
+5. Travailler en boucle avec les tests : en lancer un avant d'agir, lire son message d'échec, agir, relancer. Puis vérifier qu'ils détectent bien une faille, en cassant volontairement le code.
 
 **Contexte.** Vous partez d'un dossier vide et créez un projet Laravel 13 neuf à l'étape 1. Prérequis : PHP 8.3 ou plus récent, Composer, et l'extension PHP pdo\_sqlite.
 
@@ -35,7 +35,7 @@ Versions de référence :
 
 **Règle d'or.** Quand un extrait montre un fichier qui existe déjà, vous **ajoutez** ce qui est indiqué. Vous ne remplacez jamais un fichier entier par un extrait : les fichiers générés contiennent des éléments dont l'application a besoin. Les rares exceptions sont signalées dans l'énoncé.
 
-**Vos preuves.** Vous créez à l'étape 1, à la racine de votre projet (tp-auth), un fichier PREUVES.md. Vous y copiez, étape après étape, les sorties de commandes et vos observations demandées dans les rubriques « Preuve » : c'est ce fichier que le bilan vous demande de relire.
+**Vos preuves.** Vous créez à l'étape 1, à la racine de votre projet (tp-auth), un fichier PREUVES.md. Vous y copiez, étape après étape, les sorties de commandes et vos observations demandées dans les rubriques « Preuve » : c'est ce fichier que le bilan vous demande de relire. Vous y copiez aussi, pour chaque étape, au moins un test **rouge** (son message, et la cause en une phrase) puis le même test **vert** : les tests ne sont pas là pour valider à la fin, ils guident chaque action.
 
 ## Rappel : l'authentification et les codes HTTP
 

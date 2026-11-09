@@ -69,7 +69,43 @@ On y trouve le jeton CSRF (`_token`, celui que `@csrf` place dans les formulaire
 
 Copiez dans PREUVES.md la sortie de l'observation 1 et les trois affichages de la table `sessions` (observations 3, 4 et 5) : visiteur, connecté, déconnecté.
 
-**Tests qui doivent passer :** test\_la\_connexion\_enregistre\_l\_utilisateur\_dans\_la\_session, test\_la\_deconnexion\_detruit\_la\_session. Ils vérifient automatiquement ce que vous venez d'observer dans la table sessions : lisez-les dans le contrat, ils montrent comment tester une session.
+## Ce que les tests protègent
+
+**Lancer**
+
+```bash
+php artisan test --filter="test_la_connexion_enregistre_l_utilisateur_dans_la_session|test_la_deconnexion_detruit_la_session"
+```
+
+Les deux tests de cette étape sont **déjà verts**, depuis l'étape 2 : c'est Fortify qui ouvre et détruit la session, vous n'avez rien écrit pour cela. Ils ne guident donc pas votre travail, ils le gardent : ils reprennent automatiquement ce que vous venez d'observer dans la table sessions. Lisez-les dans le contrat, ils montrent comment tester une session, puis reliez chaque observation à l'assertion qui la reprend :
+
+| Ce que vous avez observé | Ce que le test vérifie |
+| --- | --- |
+| Observation 4 : `user_id` vaut l'identifiant d'alice ; le payload contient une clé `login_web_…` | `test_la_connexion_enregistre_l_utilisateur_dans_la_session` : une seule entrée dont la clé commence par `login_web_`, et sa valeur est l'identifiant d'alice |
+| Observation 5 : la session de l'utilisateur est détruite | `test_la_deconnexion_detruit_la_session` : un marqueur placé dans la session disparaît, puis /dashboard renvoie de nouveau vers /login |
+| Observation 4 : l'identifiant de session **a changé** | Aucun test. Si Laravel ne renouvelait plus l'identifiant à la connexion, les 20 tests resteraient verts |
+
+La dernière ligne rappelle qu'un test vert prouve ce qu'il vérifie, pas davantage : c'est pourquoi vous avez aussi regardé la table sessions. La question 2.3 ci-dessous explique pourquoi ce renouvellement compte.
+
+**Exercice — casser pour voir : une déconnexion « maison ».** Un test ne vaut que s'il peut échouer. Écrivez la déconnexion que beaucoup de débutants écriraient, et regardez ce que devient le contrat.
+
+1. **Prédire** : quel test va passer au rouge ?
+2. À la fin de routes/web.php, ajoutez ce bloc. Il porte le même nom et la même méthode que la route de Fortify : la dernière déclarée l'emporte.
+
+   ```php
+   // À RETIRER APRÈS L'EXERCICE : déconnexion « maison »
+   Route::post('/logout', function () {
+       \Illuminate\Support\Facades\Auth::logout();
+
+       return redirect('/');
+   })->name('logout');
+   ```
+
+3. Lancez le contrat. Vous obtenez 4 rouges au lieu de 3 : le nouveau est `test_la_deconnexion_detruit_la_session`, avec le message `La session aurait dû être vidée à la déconnexion.` Auth::logout() retire seulement l'utilisateur de la session ; le reste de la session survit (ici le marqueur du test, dans une application réelle tout ce qu'elle y a rangé). Fortify, lui, détruit toute la session.
+4. `test_la_deconnexion_n_accepte_que_post` reste vert : votre route est bien en POST. Chaque test protège une chose précise.
+5. Retirez le bloc et relancez : 17 verts, 3 rouges.
+
+**Preuve.** Dans PREUVES.md, copiez le message d'échec de l'étape 3 (rouge) et la ligne de résultat avant et après.
 
 > **Question 2.** Vous êtes connecté. Quelqu'un copie la valeur de votre cookie `laravel-session` dans son propre navigateur.
 >

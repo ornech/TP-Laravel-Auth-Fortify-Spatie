@@ -4,12 +4,14 @@ Le TP 1 est terminé quand les 20 tests de ce fichier passent, dont les 6 cases 
 
 Le fichier est abondamment commenté : le thème du TP n'est pas le test, mais ce mécanisme servira dans vos prochains projets. Lisez l'en-tête et les commentaires pour comprendre comment chaque test est construit.
 
+Ce contrat n'est pas une recette à passer à la fin : c'est un outil de travail. À chaque étape, vous lancez le test concerné **avant** d'agir, vous lisez son message d'échec, vous agissez, puis vous relancez (la boucle de test, présentée à l'[étape 1](etape-1.md)). La colonne « Étape » indique où vous le rencontrez pour la première fois.
+
 Ce que chaque test prouve
 
 | Étape | Test | Ce qu'il prouve |
 | --- | --- | --- |
 | 1 | test\_les\_comptes\_de\_demonstration\_ne\_sont\_pas\_crees\_en\_production | DemoUserSeeder ne crée aucun compte en production |
-| 2 | test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees | Fortify n'expose ni réinitialisation de mot de passe ni double authentification |
+| 2 | test\_seules\_les\_fonctionnalites\_utiles\_sont\_exposees | Fortify n'expose ni réinitialisation de mot de passe, ni double authentification, ni passkeys |
 | 2 | test\_les\_fonctionnalites\_de\_profil\_et\_de\_mot\_de\_passe\_sont\_desactivees | Fortify n'expose ni modification du profil ni changement du mot de passe |
 | 2 | test\_le\_mot\_de\_passe\_doit\_etre\_confirme | La règle confirmed est toujours appliquée |
 | 2 | test\_une\_connexion\_valide\_ouvre\_une\_session | Une connexion réussie mène à /dashboard, et la requête suivante n'a pas besoin de se reconnecter |
@@ -17,14 +19,14 @@ Ce que chaque test prouve
 | 2 | test\_la\_connexion\_est\_bloquee\_apres\_cinq\_echecs | La sixième tentative en une minute reçoit une 429 |
 | 2 | test\_les\_echecs\_d\_un\_compte\_ne\_bloquent\_pas\_les\_autres\_comptes | Le limiteur compte par couple « e-mail + IP » : un autre compte, depuis la même IP, peut encore se connecter |
 | 2 | test\_la\_deconnexion\_n\_accepte\_que\_post | GET /logout répond 405, POST /logout déconnecte |
-| 2 | test\_l\_inscription\_cree\_un\_compte\_connecte | L'inscription crée un compte, connecte la personne et ne stocke jamais le mot de passe en clair |
+| 2 | test\_l\_inscription\_cree\_un\_compte\_connecte | Le formulaire d'inscription s'affiche avec son champ de confirmation ; l'inscription crée un compte, connecte la personne et ne stocke jamais le mot de passe en clair |
 | 3 | test\_la\_connexion\_enregistre\_l\_utilisateur\_dans\_la\_session | Après une connexion, la session contient l'identifiant du compte : c'est cela qui signifie « connecté » |
 | 3 | test\_la\_deconnexion\_detruit\_la\_session | La déconnexion vide la session, et /dashboard renvoie de nouveau vers /login |
-| 4 | test\_la\_matrice\_d\_acces\_est\_respectee (6 cas) | Chaque case de la matrice d'accès (voir le README) : profil × route → code HTTP |
-| 4 | test\_un\_visiteur\_est\_redirige\_vers\_la\_connexion | La redirection 302 du visiteur mène bien à /login |
+| 2 et 4 | test\_la\_matrice\_d\_acces\_est\_respectee (6 cas) | Chaque case de la matrice d'accès (voir le README) : profil × route → code HTTP. Les cas /login et /dashboard se rencontrent à l'étape 2, les cas /accueil à l'étape 4 |
+| 2 | test\_un\_visiteur\_est\_redirige\_vers\_la\_connexion | La redirection 302 du visiteur mène bien à /login |
 | 4 | test\_l\_accueil\_s\_adapte\_au\_profil | /accueil affiche un contenu différent pour le visiteur et pour la personne connectée |
 
-Pour lancer un seul test : php artisan test --filter=\<nom du test>. Pour tout le contrat : php artisan test --filter=AuthenticationTest.
+Pour lancer un seul test : `php artisan test --filter=<nom du test>`. Pour tout le contrat : `php artisan test --filter=AuthenticationTest`. Pour plusieurs tests : `php artisan test --filter="nom1|nom2"`. Pour un seul cas de la matrice : `php artisan test --filter='test_la_matrice_d_acces_est_respectee.*visiteur sur /login'`.
 
 ```php
 <?php
@@ -76,8 +78,11 @@ use Tests\TestCase;
  *       Rejoue le même test avec plusieurs jeux de données (voir la matrice
  *       d'accès, plus bas).
  *
- * Deux habitudes à prendre :
+ * Trois habitudes à prendre :
  *
+ *   - Lancer un test AVANT d'écrire le code qu'il protège. Son message d'échec
+ *     dit ce qui manque, et un test déjà vert avant votre action ne prouve pas
+ *     votre travail : il décrit un comportement qui existait déjà.
  *   - Nommer chaque test comme une phrase qui dit le comportement attendu :
  *     test_<sujet>_<ce_qui_doit_arriver>. Quand un test échoue, son nom doit
  *     suffire à comprendre ce qui est cassé.
@@ -139,14 +144,15 @@ class AuthenticationTest extends TestCase
      */
     public function test_seules_les_fonctionnalites_utiles_sont_exposees(): void
     {
-        // Les routes dont on a besoin existent…
-        $this->assertTrue(Route::has('login'));
-        $this->assertTrue(Route::has('register'));
+        // Les routes dont on a besoin existent… Le second argument d'une
+        // assertion est le message affiché quand elle échoue.
+        $this->assertTrue(Route::has('login'), 'La route de connexion est absente : Fortify est-il installé ?');
+        $this->assertTrue(Route::has('register'), "La route d'inscription est absente : Features::registration() doit rester actif.");
 
-        // …et celles dont on n'a pas besoin n'existent pas. Le second argument
-        // d'une assertion est le message affiché quand elle échoue.
+        // …et celles dont on n'a pas besoin n'existent pas.
         $this->assertFalse(Route::has('password.request'), 'La réinitialisation de mot de passe doit être désactivée.');
         $this->assertFalse(Route::has('two-factor.login'), 'La double authentification doit être désactivée.');
+        $this->assertFalse(Route::has('passkey.login'), 'Les passkeys (connexion sans mot de passe) doivent être désactivées.');
     }
 
     /**
@@ -274,11 +280,15 @@ class AuthenticationTest extends TestCase
     }
 
     /**
-     * Prouve : l'inscription crée un compte, connecte la personne, et ne stocke
-     * jamais le mot de passe en clair.
+     * Prouve : le formulaire d'inscription s'affiche, puis l'inscription crée un
+     * compte, connecte la personne, et ne stocke jamais le mot de passe en clair.
      */
     public function test_l_inscription_cree_un_compte_connecte(): void
     {
+        // Le formulaire s'affiche (vue déclarée et fichier présent) et propose le
+        // champ de confirmation que Fortify attend.
+        $this->get('/register')->assertOk()->assertSee('password_confirmation');
+
         $this->post('/register', [
             'name' => 'Nouvel Inscrit',
             'email' => 'nouveau@exemple.test',
