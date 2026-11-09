@@ -12,13 +12,15 @@ php artisan test --filter=AuthorizationTest
 
 Vous obtenez 3 tests verts (les seeders et les deux tests d'inscription, étapes 2 et 3) et 11 rouges, tous liés à l'administration. Les cas qui demandent /admin/users disent `Expected response status code … but received 404` : la route n'existe pas. Les tests de l'accueil et du tableau de bord affichent un long bloc de HTML : ne le lisez pas, ils attendent un contenu qui n'existe pas encore.
 
-**Faire** — le contrôleur d'administration.
+**Faire** — le contrôleur d'administration. Un contrôleur est une classe dont les méthodes répondent aux routes (voir le vocabulaire du [README du TP 1](../tp1-authentification/README.md#vocabulaire-laravel)). `make:controller` crée le fichier app/Http/Controllers/AdminController.php, qui contient une classe vide.
 
 ```bash
 php artisan make:controller AdminController
 ```
 
-Ajoutez une méthode index() dans AdminController, avec l'import use App\\Models\\User; :
+**Vous devez voir :** `INFO Controller [app/Http/Controllers/AdminController.php] created successfully.`
+
+Ajoutez une méthode index() dans AdminController, avec l'import use App\\Models\\User;. C'est la méthode que la route /admin/users appellera : `User::with('roles')->orderBy('name')->get()` lit tous les comptes avec leurs rôles, triés par nom ; `view('admin.users', [...])` renvoie la vue resources/views/admin/users.blade.php et lui passe cette liste sous le nom `$users` :
 
 ```php
 public function index()
@@ -30,7 +32,13 @@ public function index()
 }
 ```
 
-**Faire — les routes.** Dans routes/web.php, ajoutez l'import de AdminController et le groupe protégé par permission **à l'intérieur** du groupe auth déjà présent. Les routes existantes restent en place. Voici ce que le fichier contient à la fin de l'étape (les lignes ajoutées sont signalées) :
+**Faire — les routes.** Dans routes/web.php, ajoutez l'import de AdminController et le groupe protégé par permission **à l'intérieur** du groupe auth déjà présent. Les routes existantes restent en place. Le groupe ajouté fait trois choses :
+
+- `Route::middleware('permission:gerer-utilisateurs')` attache à toutes les routes du groupe le middleware permission (alias de PermissionMiddleware) avec le paramètre gerer-utilisateurs. Ce middleware s'exécute avant le contrôleur : il répond 403 si la personne connectée n'a pas cette permission ;
+- `->prefix('admin')` ajoute /admin devant leurs URL ;
+- `->name('admin.')` ajoute admin. devant leurs noms (la route `users` s'appelle donc admin.users).
+
+Voici ce que le fichier contient à la fin de l'étape (les lignes ajoutées sont signalées) :
 
 ```php
 use App\Http\Controllers\AdminController;
@@ -55,18 +63,16 @@ Route::middleware('auth')->group(function () {
 });
 ```
 
-Ces lignes font trois choses : Route::middleware('permission:gerer-utilisateurs') attache à toutes les routes du groupe le middleware permission (alias de PermissionMiddleware) avec le paramètre gerer-utilisateurs ; ->prefix('admin') ajoute /admin devant leurs URL ; ->name('admin.') ajoute admin. devant leurs noms. Le middleware permission s'exécute avant le contrôleur : il répond 403 si la personne connectée n'a pas la permission.
-
 > [!NOTE]
 > **Pourquoi auth d'abord.** Les middlewares s'exécutent dans l'ordre. Le middleware permission répond 403 (« User is not logged in ») quand il n'y a pas de compte dont vérifier les permissions. Si permission passait avant auth, un visiteur recevrait donc une 403 « accès refusé » au lieu d'être renvoyé vers /login.
 
 **Relancer** la même commande, avant de créer les vues. Vous obtenez 7 verts et 7 rouges. Quatre tests sont passés au vert sans qu'aucune vue n'existe : le cas « visiteur » (302) et le cas « utilisateur » (403) de la matrice, `test_un_visiteur_n_atteint_pas_l_administration` et `test_un_compte_sans_role_ne_peut_pas_administrer`. Dans ces cas, la requête s'arrête dans un middleware, avant le contrôleur et avant la vue. Les cas où l'administrateur passe sont rouges avec `received 500` et la cause en dessous : `View [admin.users] not found`.
 
-**Faire — la page d'administration.** Créez resources/views/admin/users.blade.php. Elle affiche un tableau des utilisateurs reçus dans $users, avec trois colonnes : nom, e-mail, rôles. Pour les rôles d'un utilisateur : $user->getRoleNames()->implode(', '). Ajoutez un lien de retour vers route('dashboard').
+**Faire — la page d'administration.** Créez resources/views/admin/users.blade.php. Elle affiche un tableau des utilisateurs reçus dans $users, avec trois colonnes : nom, e-mail, rôles. Pour les rôles d'un utilisateur : $user->getRoleNames()->implode(', '). Ajoutez un lien de retour vers route('dashboard'). La page doit afficher le titre « Utilisateurs », un tableau Nom / E-mail / Rôles avec une ligne par compte (triés par nom), et le lien de retour.
 
 **Relancer** : 11 verts, 3 rouges. Les trois rouges restants (`test_l_accueil_s_adapte_au_role`, `test_le_lien_d_administration_suit_la_permission`, `test_un_autre_role_ayant_la_permission_voit_le_lien_d_administration`) concernent le contenu des pages /accueil et /dashboard.
 
-**Faire — compléter le tableau de bord.** Dans resources/views/dashboard.blade.php (créé au TP 1), ajoutez ces lignes entre le titre `<h1>` et le formulaire de déconnexion :
+**Faire — compléter le tableau de bord.** Dans resources/views/dashboard.blade.php (créé au TP 1), ajoutez ces lignes entre le titre `<h1>` et le formulaire de déconnexion. Elles affichent les rôles de la personne (`getRoleNames()` est une méthode de HasRoles qui renvoie les noms de ses rôles ; `->implode(', ')` les assemble en un texte séparé par des virgules) puis, seulement si elle a la permission gerer-utilisateurs (`@can`), un lien vers l'administration :
 
 ```html
 <p>Rôle(s) : {{ auth()->user()->getRoleNames()->implode(', ') }}</p>
@@ -79,7 +85,7 @@ Ces lignes font trois choses : Route::middleware('permission:gerer-utilisateurs'
 
 **Relancer** : 13 verts, 1 rouge (`test_l_accueil_s_adapte_au_role`).
 
-**Faire — compléter la page d'accueil, qui change selon le rôle.** Dans resources/views/accueil.blade.php (créé au TP 1), ajoutez ces lignes entre le bloc `@endguest` et le bloc `@auth` :
+**Faire — compléter la page d'accueil, qui change selon le rôle.** Dans resources/views/accueil.blade.php (créé au TP 1), ajoutez ces lignes entre le bloc `@endguest` et le bloc `@auth`. Chaque directive @role n'affiche son contenu que si la personne connectée a ce rôle (voir le mémo plus bas) :
 
 ```html
     {{-- Utilisateur connecté, droits limités --}}
@@ -133,6 +139,8 @@ L'exercice A et l'observation de /accueil (plus bas) utilisent le navigateur : l
 
 Après les points 1 à 3 de la démarche, connectez-vous dans le navigateur avec utilisateur@exemple.test (mot de passe password). Le lien « Gestion des utilisateurs » n'apparaît pas sur /dashboard, parce que @can le masque. Tapez /admin/users dans la barre d'adresse et notez ce que vous voyez. Expliquez pourquoi chaque test rouge échoue : quelle réponse il attend, laquelle il reçoit.
 
+Résultat attendu, à comparer avec votre observation : 3 tests rouges, le cas « utilisateur sur /admin/users » de la matrice, `test_un_compte_sans_role_ne_peut_pas_administrer` et `test_retirer_le_role_administrateur_retire_l_acces`, qui attendent une 403 et reçoivent une 200. Dans le navigateur, utilisateur@exemple.test voit le tableau des comptes sur /admin/users, alors que le lien était masqué.
+
 **Exercice B — la permission ou le nom du rôle.** Le contrat crée un rôle « tuteur », qui a la permission gerer-utilisateurs sans être administrateur. Deux variantes fautives, à essayer l'une après l'autre (remettre le code d'origine entre les deux) :
 
 - dans routes/web.php, remplacez `permission:gerer-utilisateurs` par `role:administrateur`. Le middleware role vérifie le nom du rôle, et non la permission ;
@@ -140,9 +148,15 @@ Après les points 1 à 3 de la démarche, connectez-vous dans le navigateur avec
 
 Pour chaque variante, un test est rouge. Identifiez-le et expliquez ce qu'il montre sur la différence entre vérifier un rôle et vérifier une permission.
 
+Résultat attendu, à comparer avec votre observation : pour la première variante, `test_un_autre_role_ayant_la_permission_accede_a_l_administration` avec `Expected response status code [200] but received 403` ; pour la seconde, `test_un_autre_role_ayant_la_permission_voit_le_lien_d_administration`. Dans les deux cas, le rôle « tuteur » a la permission sans être administrateur.
+
 **Exercice C — inverser l'ordre des vérifications.** Dans routes/web.php, déplacez le bloc `Route::middleware('permission:gerer-utilisateurs')->prefix('admin')->name('admin.')->group(…)` hors du groupe `Route::middleware('auth')->group(…)`, en le plaçant après l'accolade fermante de ce dernier. Les routes sont les mêmes ; le middleware auth ne s'applique plus à /admin/users. Deux tests sont rouges. Identifiez-les et notez le code reçu à la place de la redirection 302.
 
+Résultat attendu, à comparer avec votre observation : le cas « visiteur sur /admin/users » de la matrice et `test_un_visiteur_n_atteint_pas_l_administration` reçoivent une 403 au lieu de la redirection 302. Le middleware permission répond 403 (« User is not logged in ») quand il n'y a pas de compte dont vérifier les permissions.
+
 **Exercice D — faute dans le nom de la classe de l'alias permission.** Dans bootstrap/app.php, remplacez PermissionMiddleware par PermisionMiddleware, dans l'import et dans l'alias. Contrairement à la faute de l'étape 4, celle-ci touche un alias que des routes utilisent. Relevez le nombre de tests rouges et le message commun : il reprend le nom de la classe fautive.
+
+Résultat attendu, à comparer avec votre observation : 8 tests rouges, avec le message commun `Target class [Spatie\Permission\Middleware\PermisionMiddleware] does not exist.` Ce sont les 3 cas de la matrice, `test_un_visiteur_n_atteint_pas_l_administration`, `test_la_page_d_administration_liste_les_utilisateurs`, `test_un_autre_role_ayant_la_permission_accede_a_l_administration`, `test_un_compte_sans_role_ne_peut_pas_administrer` et `test_retirer_le_role_administrateur_retire_l_acces`. Les 20 tests du TP 1 ne sont pas touchés.
 
 **Preuve**
 
@@ -150,9 +164,26 @@ Pour chaque variante, un test est rouge. Identifiez-le et expliquez ce qu'il mon
 php artisan route:list --path=admin -v
 ```
 
-L'option -v affiche les middlewares de chaque route, dans l'ordre où ils s'exécutent : web, auth, puis permission:gerer-utilisateurs. Copiez la sortie et, pour les exercices A à D, la liste des tests rouges et leur message.
+L'option -v affiche les middlewares de chaque route, dans l'ordre où ils s'exécutent.
 
-Le test de la matrice a déjà vérifié les 3 cases : inutile de les refaire à la main. Il reste à observer l'affichage de /accueil. Ouvrez /accueil connecté avec utilisateur@exemple.test, puis avec admin@exemple.test (déconnectez-vous entre les deux), et notez ce qu'affiche la page pour chacun.
+**Vous devez voir :**
+
+```text
+GET|HEAD  admin/users … admin.users › AdminController@index
+          ⇂ web
+          ⇂ auth
+          ⇂ permission:gerer-utilisateurs
+```
+
+Copiez la sortie et, pour les exercices A à D, la liste des tests rouges et leur message.
+
+Le test de la matrice a déjà vérifié les 3 cases : inutile de les refaire à la main. Il reste à observer l'affichage dans le navigateur. Connectez-vous avec utilisateur@exemple.test, puis avec admin@exemple.test (déconnectez-vous entre les deux), ouvrez /accueil, /dashboard et /admin/users, et notez ce qu'affiche chaque page. Résultat attendu, à comparer avec votre observation :
+
+| Page | utilisateur@exemple.test | admin@exemple.test |
+| --- | --- | --- |
+| /accueil | « Espace utilisateur : retrouvez votre tableau de bord. », « Vous êtes identifié : Utilisateur Démo. », lien « Tableau de bord » | « Espace administrateur : vous gérez les comptes. », « Vous êtes identifié : Admin Démo. », lien « Tableau de bord » |
+| /dashboard | « Bonjour Utilisateur Démo », « Rôle(s) : utilisateur », bouton « Se déconnecter », pas de lien d'administration | « Bonjour Admin Démo », « Rôle(s) : administrateur », lien « Gestion des utilisateurs », bouton « Se déconnecter » |
+| /admin/users | Page d'erreur 403 avec le message « User does not have the right permissions. » | Tableau « Utilisateurs » avec deux lignes : Admin Démo (administrateur) et Utilisateur Démo (utilisateur) |
 
 > **Question 4.** Un collègue ajoute demain une route /admin/export en dehors du groupe protégé. Qu'est-ce qui empêcherait cette erreur de passer inaperçue ?
 

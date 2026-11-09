@@ -14,7 +14,7 @@ Le test est rouge avec `Target class [Database\Seeders\RoleSeeder] does not exis
 
 ## **Seeder RoleSeeder**
 
-**Faire** — php artisan make:seeder RoleSeeder, puis complétez le fichier :
+**Faire** — `php artisan make:seeder RoleSeeder` crée le fichier database/seeders/RoleSeeder.php, qui contient une classe vide. **Vous devez voir :** `INFO Seeder [database/seeders/RoleSeeder.php] created successfully.` Complétez ensuite le fichier :
 
 ```php
 <?php
@@ -136,7 +136,20 @@ php artisan permission:show
 php artisan db:seed
 ```
 
-migrate:fresh --seed supprime toutes les tables, les recrée, puis lance DatabaseSeeder, donc RoleSeeder puis DemoUserSeeder. permission:show affiche la matrice rôles × permissions : la permission gerer-utilisateurs ne doit être cochée que pour administrateur. Le second lancement des seeders (db:seed) doit se terminer sans erreur. Copiez les sorties de permission:show et du second lancement dans PREUVES.md.
+migrate:fresh --seed supprime toutes les tables, les recrée, puis lance DatabaseSeeder, donc RoleSeeder puis DemoUserSeeder. permission:show affiche la matrice rôles × permissions. Le second lancement des seeders (db:seed) doit se terminer sans erreur.
+
+**Vous devez voir :** pour migrate:fresh --seed, les migrations suivies de deux lignes `RoleSeeder … DONE` et `DemoUserSeeder … DONE` ; pour permission:show, une matrice dont la permission gerer-utilisateurs n'est cochée que pour administrateur :
+
+```text
+Guard: web
++--------------------+----------------+-------------+
+|                    | administrateur | utilisateur |
++--------------------+----------------+-------------+
+| gerer-utilisateurs |  ✔             |  ·          |
++--------------------+----------------+-------------+
+```
+
+pour db:seed, les deux mêmes lignes `DONE`, sans message d'erreur. Copiez les sorties de permission:show et du second lancement dans PREUVES.md.
 
 **Exercice — remplacer findOrCreate par create.** Vérifiez ce que garantit findOrCreate.
 
@@ -153,18 +166,26 @@ migrate:fresh --seed supprime toutes les tables, les recrée, puis lance Databas
 > 1. La table *users* contient-elle une colonne pour le rôle ?
 > 2. Dans quelle table est enregistré le fait qu'un compte est administrateur ?
 
-Indices :
+Indices : les trois commandes suivantes affichent des données de la base, qui permettent de répondre.
+
+`db:table users` affiche les colonnes de la table users :
 
 ```bash
 php artisan db:table users
 ```
 
+La commande suivante affiche toutes les lignes de la table model\_has\_roles (`DB::table('nom')->get()` lit une table sans passer par un modèle, `dump()` affiche le résultat) :
+
 ```bash
 php artisan tinker --execute="dump(DB::table('model_has_roles')->get());"
 ```
 
+Celle-ci affiche toutes les lignes de la table roles :
+
 ```bash
 php artisan tinker --execute="dump(DB::table('roles')->get());"
 ```
+
+**Vous devez voir :** pour db:table, un tableau de colonnes avec leur type ; pour les deux commandes tinker, une liste de lignes, chacune avec ses champs (`role_id`, `model_type`, `model_id` pour la première ; `id`, `name`, `guard_name` pour la seconde).
 
 Copiez les trois sorties dans PREUVES.md. La troisième sert à traduire l'identifiant d'un rôle (role\_id) en son nom.

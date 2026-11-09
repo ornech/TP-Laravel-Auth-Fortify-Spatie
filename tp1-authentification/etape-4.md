@@ -17,7 +17,7 @@ Vous retrouvez 17 tests verts et 3 rouges. Les trois rouges sont ceux qui concer
 
 Les 4 autres cases de la matrice (/login et /dashboard, pour les deux profils) sont déjà vertes : ce sont vos routes de l'étape 2.
 
-**Faire — la route de la page d'accueil.** Dans routes/web.php, ajoutez la route /accueil, qui est publique. Les routes existantes restent en place. Voici ce que le fichier contient à la fin de l'étape (la ligne ajoutée est signalée) :
+**Faire — la route de la page d'accueil.** Dans routes/web.php, ajoutez la route /accueil, qui est publique. Les routes existantes restent en place. `Route::view('/accueil', 'accueil')` associe directement l'URL /accueil à la vue resources/views/accueil.blade.php, sans contrôleur ; `->name('accueil')` donne un nom à la route. La ligne est placée hors du groupe auth : elle n'a pas de middleware, donc tout le monde y accède (200). Voici ce que le fichier contient à la fin de l'étape (la ligne ajoutée est signalée) :
 
 ```php
 use App\Http\Controllers\DashboardController;
@@ -60,6 +60,8 @@ Route::middleware('auth')->group(function () {
 </html>
 ```
 
+**Vous devez voir** dans le navigateur (observation plus bas) : pour un visiteur, le titre « Accueil », le texte « Vous naviguez en visiteur. » et les liens « Se connecter » et « Créer un compte » ; pour une personne connectée, « Vous êtes identifié : » suivi de son nom et le lien « Tableau de bord », sans le texte du visiteur.
+
 > [!NOTE]
 > **Deux directives pour adapter une vue.**
 >
@@ -94,14 +96,29 @@ Cet exercice et l'observation de /accueil (plus bas) utilisent le navigateur : l
 3. **Prédisez** d'abord quels tests vont échouer : écrivez votre liste dans PREUVES.md. Puis lancez php artisan test --filter=AuthenticationTest. Quels cas échouent, et votre liste était-elle juste ? PHPUnit affiche leur nom, mais il est coupé par « … » si la fenêtre du terminal est trop étroite : agrandissez-la. Le message de l'échec (code attendu, code reçu) aide aussi à les identifier.
 4. Remettez la ligne d'origine, `Route::middleware('auth')->group(function () {`, et relancez les tests : 20 verts.
 
+Résultat attendu, à comparer avec votre observation :
+
+- point 2 : une page d'erreur 500 dont le message est `Attempt to read property "name" on null`. Sans le middleware auth, la requête atteint le contrôleur et la vue, qui lit le nom d'une personne connectée alors qu'il n'y en a pas ; il n'y a pas de redirection vers /login ;
+- point 3 : 3 tests rouges, le cas « visiteur sur /dashboard » de la matrice (302 attendu, 500 reçu), `test_un_visiteur_est_redirige_vers_la_connexion` et `test_la_deconnexion_detruit_la_session`.
+
 **Preuve**
 
 ```bash
 php artisan route:list --path=dashboard -v
 ```
 
-L'option -v affiche les middlewares de chaque route. Copiez la sortie et vos observations des points 2 et 3.
+L'option -v affiche les middlewares de chaque route, dans l'ordre où ils s'exécutent.
 
-Le test de la matrice a déjà vérifié les 6 cases : inutile de les refaire à la main. Il reste à observer l'affichage de /accueil. Ouvrez /accueil en visiteur (fenêtre de navigation privée), puis connecté avec alice@exemple.test, et notez ce qu'affiche la page pour chacun.
+**Vous devez voir :**
+
+```text
+GET|HEAD  dashboard … dashboard › DashboardController@index
+          ⇂ web
+          ⇂ auth
+```
+
+web est le groupe de middlewares commun à toutes les routes web (session, cookies, protection CSRF) ; auth est le middleware du groupe qui contient la route. Copiez la sortie et vos observations des points 2 et 3.
+
+Le test de la matrice a déjà vérifié les 6 cases : inutile de les refaire à la main. Il reste à observer l'affichage de /accueil. Ouvrez /accueil en visiteur (fenêtre de navigation privée), puis connecté avec alice@exemple.test, et notez ce qu'affiche la page pour chacun. Résultat attendu, à comparer avec votre observation : pour le visiteur, « Vous naviguez en visiteur. » et les liens « Se connecter » et « Créer un compte » ; pour alice, « Vous êtes identifié : Alice Démo. » et le lien « Tableau de bord ».
 
 > **Question 3.** Sur /accueil, le lien « Tableau de bord » est masqué aux visiteurs par @auth. Qu'est-ce qui empêche réellement un visiteur d'ouvrir /dashboard ? Comment l'avez-vous prouvé ?

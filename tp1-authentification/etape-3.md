@@ -39,6 +39,8 @@ Sous Windows PowerShell, tapez `curl.exe`. L'option `-I` n'affiche que les en-t�
 php artisan tinker --execute="DB::table('sessions')->truncate();"
 ```
 
+La commande n'affiche rien : tinker rend la main sans message. Elle supprime toutes les lignes de la table sessions ; la ligne observée ensuite est donc forcément celle de votre navigateur.
+
 Dans le navigateur, ouvrez http://127.0.0.1:8000/login sans vous connecter, puis affichez la table :
 
 ```bash
@@ -90,7 +92,7 @@ La dernière ligne rappelle qu'un test vert prouve ce qu'il vérifie, pas davant
 **Exercice — remplacer la déconnexion de Fortify.** Un test ne vaut que s'il peut échouer. Cet exercice remplace la déconnexion de Fortify par une version qui retire l'utilisateur de la session sans détruire la session, puis observe les tests.
 
 1. **Prédire** : quel test va passer au rouge ?
-2. À la fin de routes/web.php, ajoutez ce bloc. Il porte le même nom et la même méthode que la route de Fortify : la dernière déclarée l'emporte.
+2. Le bloc suivant déclare une route POST /logout nommée logout, comme celle de Fortify. `Auth::logout()` retire l'utilisateur de la session ; `redirect('/')` renvoie vers l'accueil. Contrairement à Fortify, le bloc n'appelle ni `invalidate()` ni `regenerateToken()` : le reste de la session n'est pas détruit. Ajoutez-le à la fin de routes/web.php. Il porte le même nom et la même méthode que la route de Fortify : la dernière déclarée l'emporte.
 
    ```php
    // À RETIRER APRÈS L'EXERCICE : déconnexion « maison »
@@ -101,7 +103,7 @@ La dernière ligne rappelle qu'un test vert prouve ce qu'il vérifie, pas davant
    })->name('logout');
    ```
 
-3. Lancez le contrat. Vous obtenez 4 rouges au lieu de 3 : le nouveau est `test_la_deconnexion_detruit_la_session`, avec le message `La session aurait dû être vidée à la déconnexion.` Auth::logout() retire seulement l'utilisateur de la session ; le reste de la session survit (ici le marqueur du test, dans une application réelle tout ce qu'elle y a rangé). Fortify, lui, détruit toute la session.
+3. Lancez le contrat. Vous obtenez 4 rouges au lieu de 3 : le nouveau est `test_la_deconnexion_detruit_la_session`, avec le message `La session aurait dû être vidée à la déconnexion.` Le marqueur que le test place dans la session (dans une application réelle, tout ce qu'elle y a rangé) a survécu à la déconnexion, alors que Fortify détruit toute la session.
 4. `test_la_deconnexion_n_accepte_que_post` reste vert : votre route est bien en POST. Ce test porte sur la méthode HTTP, pas sur la session.
 5. Retirez le bloc et relancez : 17 verts, 3 rouges.
 

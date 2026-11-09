@@ -28,7 +28,7 @@ Vous saurez :
 5. Expliquer et provoquer la réponse 403 de votre application, et la distinguer de la redirection 302.
 6. Travailler en boucle avec les tests : en lancer un avant d'agir, lire son message d'échec, agir, relancer. Puis vérifier qu'ils détectent bien une faille, en modifiant volontairement le code.
 
-**Contexte.** Vous continuez le projet tp-auth du TP 1 : il doit avoir ses 20 tests verts. Prérequis : le TP 1 terminé.
+**Contexte.** Vous continuez le projet tp-auth du TP 1 : il doit avoir ses 20 tests verts. Prérequis : le TP 1 terminé. Le vocabulaire Laravel (route, contrôleur, vue, middleware, modèle, migration) est défini dans le [README du TP 1](../tp1-authentification/README.md#vocabulaire-laravel).
 
 Version de référence :
 

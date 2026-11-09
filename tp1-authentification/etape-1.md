@@ -4,6 +4,8 @@
 
 ## Créer le projet
 
+Trois commandes préparent le projet. `composer create-project` télécharge le squelette officiel de Laravel dans un nouveau dossier tp-auth et installe ses dépendances dans vendor/. `cd tp-auth` se place dans ce dossier : toutes les commandes suivantes se lancent depuis lui. `php artisan --version` affiche la version de Laravel installée.
+
 **Faire**
 
 ```bash
@@ -12,6 +14,8 @@ composer create-project laravel/laravel tp-auth
 cd tp-auth
 php artisan --version
 ```
+
+**Vous devez voir :** l'installation de composer, qui se termine par `Application key set successfully.` puis la liste des migrations de base (`0001_01_01_000000_create_users_table … DONE`, etc.), et pour la dernière commande `Laravel Framework 13.x.y` (la version de référence du TP est 13.40.0).
 
 Créez aussi à la racine du projet un fichier vide **PREUVES.md** : vous y copierez vos preuves tout au long du TP (voir le README).
 
@@ -72,7 +76,7 @@ Pour vous connecter dans le navigateur, il faut des comptes qui existent déjà.
 > [!NOTE]
 > **Seeder.** Un **seeder** est une classe qui remplit la base de données avec des données de départ. On le lance avec php artisan db:seed.
 
-**Faire** — php artisan make:seeder DemoUserSeeder, puis complétez le fichier :
+**Faire** — `php artisan make:seeder DemoUserSeeder` crée le fichier database/seeders/DemoUserSeeder.php, qui contient une classe vide. **Vous devez voir :** `INFO Seeder [database/seeders/DemoUserSeeder.php] created successfully.` Complétez ensuite le fichier :
 
 ```php
 <?php

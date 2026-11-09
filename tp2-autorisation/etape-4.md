@@ -5,13 +5,15 @@
 > [!NOTE]
 > **Où se déclarent les middlewares depuis Laravel 11.** Le fichier app/Http/Kernel.php n'existe plus. Les alias se déclarent dans bootstrap/app.php, dans withMiddleware(). Un alias est un nom court (permission) qui pointe vers une classe.
 
-**Faire — vérifier les noms de classes à la source**, avant de les écrire :
+**Faire — vérifier les noms de classes à la source**, avant de les écrire. `ls` liste le contenu d'un dossier. Le dossier ci-dessous contient les classes de middleware de Spatie : le nom de chaque fichier est le nom de la classe qu'il contient.
 
 ```bash
 ls vendor/spatie/laravel-permission/src/Middleware
 ```
 
 Sous Windows : dir vendor\\spatie\\laravel-permission\\src\\Middleware.
+
+**Vous devez voir** trois fichiers : `PermissionMiddleware.php`, `RoleMiddleware.php` et `RoleOrPermissionMiddleware.php`.
 
 **Faire** — dans bootstrap/app.php, ajoutez les imports en haut du fichier :
 

@@ -72,6 +72,8 @@ php artisan migrate
 | config:clear | Supprime la configuration mise en cache, s'il y en a une, pour que Laravel lise le nouveau fichier config/permission.php. |
 | migrate | Exécute la migration : crée les cinq tables. |
 
+**Vous devez voir :** pour composer require, la ligne `Using version ^8.5 for spatie/laravel-permission` puis la fin de l'installation sans message d'erreur ; pour vendor:publish, deux lignes `Copying file … DONE` (config/permission.php et une migration `…_create_permission_tables.php`) ; pour config:clear, `INFO Configuration cache cleared successfully.` ; pour migrate, une ligne `…_create_permission_tables … DONE`.
+
 **Lancer (avant d'agir).** Les tables existent. Appelez une méthode de Spatie sur un compte existant :
 
 ```bash
@@ -80,7 +82,7 @@ php artisan tinker --execute="var_dump(App\Models\User::first()->hasRole('admini
 
 Le message est `Call to undefined method App\Models\User::hasRole().` Les méthodes de Spatie n'existent pas encore sur le modèle User.
 
-**Faire.** Dans app/Models/User.php, ajoutez **l'import** et le **trait** HasRoles.
+**Faire.** Dans app/Models/User.php, ajoutez **l'import** et le **trait** HasRoles. Un trait ajoute à la classe qui l'utilise un ensemble de méthodes (voir le mémo plus bas) : HasRoles donne au modèle User les méthodes de Spatie pour les rôles et les permissions.
 
 ![](images/etape1-user-hasroles.png)
 
@@ -102,8 +104,10 @@ Le trait HasRoles ajoute au modèle les méthodes de Spatie : assignRole(), hasR
 
 **Preuve**
 
+`db:table` affiche la structure d'une table : ses colonnes, ses index et ses clés étrangères.
+
 ```bash
 php artisan db:table model_has_roles
 ```
 
-Copiez la liste des colonnes dans PREUVES.md et indiquez, pour chacune des trois colonnes (role\_id, model\_type, model\_id), ce qu'elle désigne.
+**Vous devez voir :** 3 colonnes (`role_id` integer, `model_type` varchar, `model_id` integer), des index (dont un sur `model_id` et `model_type`), et une clé étrangère de `role_id` vers la table roles. Copiez la liste des colonnes dans PREUVES.md et indiquez, pour chacune des trois colonnes (role\_id, model\_type, model\_id), ce qu'elle désigne.

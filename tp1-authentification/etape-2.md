@@ -18,6 +18,8 @@ php artisan migrate
 | php artisan fortify:install | Copie dans votre projet config/fortify.php (liste des fonctionnalités), app/Providers/FortifyServiceProvider.php (enregistré dans bootstrap/providers.php), les actions de app/Actions/Fortify (dont CreateNewUser) et deux migrations. |
 | php artisan migrate | Exécute les migrations. |
 
+**Vous devez voir :** pour composer require, la ligne `Using version ^1.41 for laravel/fortify` puis la fin de l'installation sans message d'erreur ; pour fortify:install, `INFO Fortify scaffolding installed successfully.` ; pour migrate, deux lignes terminées par `DONE` : `…_add_two_factor_columns_to_users_table` et `…_create_passkeys_table`.
+
 Ces migrations ajoutent à la table users les colonnes de la double authentification (two\_factor\_\*) et créent une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
 
 > [!NOTE]
@@ -50,6 +52,18 @@ php artisan test --filter="test_seules_les_fonctionnalites_utiles_sont_exposees|
 ```
 
 Les deux tests sont rouges, et chaque message nomme ce qui est en trop : `La réinitialisation de mot de passe doit être désactivée.` et `La modification du profil doit être désactivée.` Le test s'arrête à la première assertion qui échoue : un autre message peut apparaître une fois ce premier point réglé.
+
+La clé `features` de config/fortify.php est la liste des fonctionnalités de Fortify qui sont actives. Chaque entrée active enregistre des routes dans l'application. Le fichier généré active presque toutes les entrées :
+
+| Entrée | Ce qu'elle active |
+| --- | --- |
+| Features::registration() | L'inscription : GET et POST /register |
+| Features::resetPasswords() | Le « mot de passe oublié » : /forgot-password et /reset-password |
+| Features::emailVerification() | La confirmation de l'adresse e-mail (déjà commentée dans le fichier généré) |
+| Features::updateProfileInformation() | La modification du nom et de l'e-mail d'un compte connecté |
+| Features::updatePasswords() | Le changement de mot de passe d'un compte connecté |
+| Features::twoFactorAuthentication([...]) | La double authentification |
+| Features::passkeys([...]) | Les passkeys |
 
 **Faire :** Dans config/fortify.php, ne gardez que l'inscription dans la liste des features. Commentez les autres lignes ; la liste exacte dépend de votre version de Fortify.
 
@@ -124,6 +138,8 @@ Ce cas de la matrice d'accès demande la page /login à un visiteur. Il est roug
 
 Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin de la méthode boot(). Ne supprimez rien de ce qui s'y trouve.
 
+FortifyServiceProvider est un service provider (voir le vocabulaire du README) : sa méthode boot() s'exécute à chaque démarrage de l'application. La ligne `Fortify::loginView(fn () => view('auth.login'))` enregistre une fonction anonyme (`fn () => …`) que Fortify appelle quand il doit afficher /login. Cette fonction renvoie la vue auth.login, c'est-à-dire le fichier resources/views/auth/login.blade.php (le point remplace le séparateur de dossier). La seconde ligne fait de même pour /register.
+
 ```php
         Fortify::loginView(fn () => view('auth.login'));
         Fortify::registerView(fn () => view('auth.register'));
@@ -189,6 +205,8 @@ Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin
 
 **Relancer** la commande du cas « visiteur sur /login » : il est vert.
 
+**Vous devez voir** dans le navigateur (preuve 2, plus bas) : une page « Connexion » avec les champs E-mail et Mot de passe, la case « Rester connecté », le bouton « Se connecter » et le lien « Créer un compte ».
+
 **Ce qui compte dans ce formulaire.**
 
 | Élément | Rôle |
@@ -224,13 +242,15 @@ php artisan test --filter="test_une_connexion_valide_ouvre_une_session|test_un_v
 
 Les deux tests sont rouges avec `Expected response status code … but received 404` : la route /dashboard n'existe pas.
 
-**Faire — le contrôleur.**
+**Faire — le contrôleur.** Un contrôleur est une classe dont les méthodes répondent aux routes (voir le vocabulaire du README). `make:controller` crée le fichier app/Http/Controllers/DashboardController.php, qui contient une classe vide.
 
 ```bash
 php artisan make:controller DashboardController
 ```
 
-Ajoutez une méthode index() dans DashboardController :
+**Vous devez voir :** `INFO Controller [app/Http/Controllers/DashboardController.php] created successfully.`
+
+Ajoutez une méthode index() dans DashboardController. C'est la méthode que la route /dashboard appellera : `view('dashboard')` construit la page à partir du fichier resources/views/dashboard.blade.php et la renvoie.
 
 ```php
 public function index()
@@ -239,7 +259,11 @@ public function index()
 }
 ```
 
-**Faire — la route.** Dans routes/web.php, ajoutez l'import et ce bloc. Les routes existantes restent en place.
+**Faire — la route.** Dans routes/web.php, ajoutez l'import et ce bloc. Les routes existantes restent en place. Le bloc fait trois choses :
+
+- `Route::middleware('auth')->group(function () { … })` crée un groupe de routes auquel est attaché le middleware auth. Avant d'exécuter le contrôleur, ce middleware vérifie que la personne est connectée ; sinon, il la renvoie vers /login (302) ;
+- `Route::get('/dashboard', [DashboardController::class, 'index'])` associe la méthode GET sur l'URL /dashboard à la méthode index() du contrôleur ;
+- `->name('dashboard')` donne un nom à la route : le code et les vues peuvent l'appeler par `route('dashboard')` plutôt que par son URL.
 
 ```php
 use App\Http\Controllers\DashboardController;
@@ -252,7 +276,7 @@ Route::middleware('auth')->group(function () {
 
 **Relancer** la même commande, avant de créer la vue. Le test du visiteur est vert : le middleware auth renvoie le visiteur vers /login, la vue n'est pas nécessaire pour cela. Celui de la connexion reste rouge, mais le message est maintenant `received 500`, avec la cause en dessous : `View [dashboard] not found`. La route et le contrôleur existent, il manque la vue. Le test `test_la_deconnexion_detruit_la_session` est lui aussi passé au vert avec cette route.
 
-**Faire — la vue.** Créez resources/views/dashboard.blade.php :
+**Faire — la vue.** Créez resources/views/dashboard.blade.php. `{{ auth()->user()->name }}` affiche le nom de la personne connectée : `auth()->user()` renvoie son compte (ou null pour un visiteur) et `->name` en lit le nom. Le formulaire envoie une requête POST vers la route nommée logout, fournie par Fortify (`route('logout')`), avec le jeton CSRF ajouté par @csrf :
 
 ```html
 <!DOCTYPE html>
@@ -274,6 +298,8 @@ Route::middleware('auth')->group(function () {
 ```
 
 **Relancer** la même commande : les deux tests sont verts.
+
+**Vous devez voir** dans le navigateur (preuve 1) : le titre « Bonjour » suivi de votre nom, et un bouton « Se déconnecter ».
 
 La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côté serveur. Après la déconnexion, Fortify redirige vers /.
 
@@ -302,6 +328,8 @@ Le test commence par demander la page /register. Il est rouge : `Expected respon
 | Confirmation | password\_confirmation | password |
 
 Le nom password\_confirmation n'est pas libre : la règle de validation confirmed cherche un champ nommé \<champ>\_confirmation.
+
+**Vous devez voir** dans le navigateur (preuve 1) : un titre « Inscription », les champs Nom, E-mail, Mot de passe et Confirmation, et un bouton d'envoi.
 
 **Relancer** la même commande. Si le message devient `Expected: <!DOCTYPE html> … To contain: password_confirmation`, le test a bien reçu votre page mais n'y a pas trouvé le champ de confirmation : le texte affiché est le code HTML reçu, cherchez-y ce qui manque. Quand le champ est bien nommé, le test est vert : il a aussi envoyé le formulaire et vérifié que le compte est créé, la personne connectée et le mot de passe haché.
 
@@ -338,18 +366,18 @@ Notez dans PREUVES.md les trois sortes de messages et le nombre de tests concern
 
 Les tests ne voient ni le navigateur, ni le jeton CSRF, ni les cookies : ces points se prouvent à la main.
 
-Lancez le serveur de développement dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C). Vous le relancerez de la même façon aux étapes 3 et 4, qui utilisent le navigateur :
+`php artisan serve` démarre le serveur web de développement de PHP sur votre machine : il répond aux requêtes du navigateur et de curl jusqu'à son arrêt. Lancez-le dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C). Vous le relancerez de la même façon aux étapes 3 et 4, qui utilisent le navigateur :
 
 ```bash
 php artisan serve
 ```
 
-Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
+**Vous devez voir :** `INFO Server running on [http://127.0.0.1:8000].` puis `Press Ctrl+C to stop the server`. Le terminal reste occupé tant que le serveur tourne : les autres commandes se lancent dans un second terminal. Le TP utilise l'adresse http://127.0.0.1:8000, affichée par la commande.
 
-1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register (mot de passe d'au moins 8 caractères). Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue. Les messages d'erreur de Laravel (mot de passe trop court, confirmation différente…) s'affichent en anglais : c'est normal, la langue de l'application est l'anglais par défaut.
-2. Retirez @csrf de la vue de connexion (la directive qui ajoute au formulaire le champ caché \_token) et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne et, d'après le mémo sur la protection CSRF, par quel mécanisme. Remettez @csrf, puis déconnectez-vous.
+1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register (mot de passe d'au moins 8 caractères). Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue : c'est / (la page d'accueil de Laravel). Les messages d'erreur de Laravel (mot de passe trop court, confirmation différente…) s'affichent en anglais : c'est normal, la langue de l'application est l'anglais par défaut.
+2. Retirez @csrf de la vue de connexion (la directive qui ajoute au formulaire le champ caché \_token) et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne et, d'après le mémo sur la protection CSRF, par quel mécanisme. Remettez @csrf, puis déconnectez-vous. Résultat attendu, à comparer avec votre observation : la connexion fonctionne et vous arrivez sur /dashboard. Le navigateur envoie l'en-tête Sec-Fetch-Site: same-origin vers 127.0.0.1, ce qui suffit au premier critère du mémo, sans jeton.
 3. Envoyez la même requête sans navigateur, avec curl, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
-4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative avec un mauvais mot de passe.
+4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Résultat attendu, à comparer avec votre observation : les cinq premières tentatives affichent de nouveau le formulaire avec le message « These credentials do not match our records. » ; la sixième affiche une page « 429 Too Many Requests ». Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative avec un mauvais mot de passe.
 
 > [!NOTE]
 > **curl.** curl est un outil en ligne de commande qui envoie des requêtes HTTP sans navigateur. L'option -i affiche les en-têtes de la réponse, -X choisit la méthode (ici POST) et -d envoie des champs de formulaire.

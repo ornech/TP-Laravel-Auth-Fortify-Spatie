@@ -171,17 +171,25 @@ Le serveur de développement doit tourner pour les points 3 et 5. S'il est arrê
    <input type="hidden" name="role" value="administrateur">
    ```
 
-   Remplissez le formulaire avec une adresse e-mail neuve et validez.
+   Remplissez le formulaire avec une adresse e-mail neuve et validez. **Vous devez voir :** la page /dashboard avec « Bonjour » suivi du nom saisi, comme après une inscription normale. L'attaque n'a pas de signe visible dans le navigateur : le rôle se lit dans la base (point suivant).
 
-4. Dans `php artisan tinker`, affichez les rôles du dernier inscrit :
+4. `php artisan tinker`, lancé sans option, ouvre une console interactive : vous tapez une expression PHP, elle affiche son résultat après `=`. Quittez avec `exit` ou Ctrl+D. Affichez les rôles du dernier inscrit : `latest('id')->first()` lit le compte dont l'identifiant est le plus grand, `getRoleNames()` renvoie les noms de ses rôles.
 
    ```php
    App\Models\User::latest('id')->first()->getRoleNames()
    ```
 
-   Vous devez voir `administrateur`.
+   **Vous devez voir :** une collection qui contient `administrateur` :
 
-5. Remettez la version sûre, puis rejouez les points 2 à 4 (avec une autre adresse e-mail) : le test passe, et le nouveau compte n'a que `utilisateur`.
+   ```text
+   = Illuminate\Support\Collection {#8061
+       all: [
+         "administrateur",
+       ],
+     }
+   ```
+
+5. Remettez la version sûre, puis rejouez les points 2 à 4 (avec une autre adresse e-mail) : le test passe, et le nouveau compte n'a que `utilisateur` (la collection affichée par tinker contient `"utilisateur"` et rien d'autre).
 
 6. Nettoyez ensuite la base de développement :
 

@@ -37,6 +37,24 @@ Versions de référence :
 
 **Vos preuves.** Vous créez à l'étape 1, à la racine de votre projet (tp-auth), un fichier PREUVES.md. Vous y copiez, étape après étape, les sorties de commandes et vos observations demandées dans les rubriques « Preuve » : c'est ce fichier que le bilan vous demande de relire. Vous y copiez aussi, pour chaque étape, au moins un test **rouge** (son message, et la cause en une phrase) puis le même test **vert** : les tests ne sont pas là pour valider à la fin, ils guident chaque action.
 
+## Vocabulaire Laravel
+
+Aucune connaissance préalable de Laravel n'est supposée. Les termes ci-dessous sont utilisés dans les deux TP.
+
+| Terme | Définition | Où il apparaît |
+| --- | --- | --- |
+| Composer | Gestionnaire de dépendances de PHP. `composer require nom/package` télécharge un package dans le dossier vendor/ du projet. | Étapes 1 et 2 |
+| Artisan | Outil en ligne de commande de Laravel. `php artisan <commande>` exécute une commande du projet ; `php artisan list` les liste toutes. | Toutes les étapes |
+| Route | Lien entre une URL (avec sa méthode HTTP : GET, POST…) et le code qui y répond. Les routes de l'application sont déclarées dans routes/web.php, par exemple `Route::get('/dashboard', …)`. | Étapes 2 et 4 |
+| Contrôleur | Classe du dossier app/Http/Controllers dont une méthode construit la réponse d'une route. Ici, `DashboardController::index()` renvoie une vue. | Étape 2 |
+| Vue (Blade) | Fichier du dossier resources/views, nommé `….blade.php`, qui produit la page HTML. `{{ … }}` affiche une valeur ; `@auth`, `@guest` et les autres directives commencent par @. | Étapes 2 et 4 |
+| Middleware | Code placé devant une route : il examine la requête avant le contrôleur, puis la laisse passer ou la refuse (voir « Rappel » ci-dessous). | Étapes 2 et 4 |
+| Service provider | Classe qui configure un composant de l'application au démarrage. Sa méthode `boot()` s'exécute à chaque démarrage. Fortify ajoute app/Providers/FortifyServiceProvider.php. | Étape 2 |
+| Modèle | Classe qui représente une table de la base de données. `User` représente la table users. | TP 2 |
+| Migration | Fichier qui crée ou modifie des tables. `php artisan migrate` exécute les migrations pas encore appliquées. | Étapes 1 et 2 |
+
+**Le trajet d'une requête.** Quand le navigateur demande une page, Laravel exécute, dans cet ordre : les middlewares de la route (par exemple auth), puis le contrôleur, puis la vue. Si un middleware refuse la requête, il répond lui-même (par exemple une redirection 302) et le contrôleur n'est pas exécuté.
+
 ## Rappel : l'authentification et les codes HTTP
 
 L'authentification répond à une seule question : « qui êtes-vous ? ». Dans Laravel, c'est le travail de **Fortify** (connexion, inscription, session), et le middleware **auth** protège les pages réservées aux personnes connectées. Un visiteur qui demande une telle page reçoit une redirection 302 vers /login.
