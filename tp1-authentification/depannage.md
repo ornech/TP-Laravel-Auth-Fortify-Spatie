@@ -21,3 +21,4 @@ Lisez d'abord le message d'erreur en entier : dans ce TP, il nomme presque toujo
 | « Target \[Laravel\\Fortify\\Contracts\\CreatesNewUsers\] is not instantiable. » | createUsersUsing supprimé de boot() | Restaurer Fortify::createUsersUsing(CreateNewUser::class) |
 | « Target \[Laravel\\Fortify\\Contracts\\ConfirmPasswordViewResponse\] is not instantiable. » | Visite de /user/confirm-password : Fortify enregistre toujours cette route, et aucune vue n'est déclarée | Ne pas utiliser cette route, ou déclarer Fortify::confirmPasswordView(...) dans boot() |
 | Base de développement vidée après les tests | phpunit.xml pointe vers la vraie base | SQLite en mémoire (étape 1) |
+| « sqlite3 not found in path. » après php artisan db | Le programme sqlite3 n'est pas installé, ou son dossier n'est pas dans le PATH | Installer sqlite3, ou utiliser les commandes tinker de remplacement données à l'étape 3 |

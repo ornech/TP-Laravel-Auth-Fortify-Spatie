@@ -26,7 +26,7 @@ Vous saurez :
 4. Expliquer et provoquer les réponses 302, 405, 419 et 429 de votre application.
 5. Travailler en boucle avec les tests : en lancer un avant d'agir, lire son message d'échec, agir, relancer. Puis vérifier qu'ils détectent bien une faille, en cassant volontairement le code.
 
-**Contexte.** Vous partez d'un dossier vide et créez un projet Laravel 13 neuf à l'étape 1. Prérequis : PHP 8.3 ou plus récent, Composer, et l'extension PHP pdo\_sqlite.
+**Contexte.** Vous partez d'un dossier vide et créez un projet Laravel 13 neuf à l'étape 1. Prérequis : PHP 8.3 ou plus récent, Composer, et l'extension PHP pdo\_sqlite. Le programme `sqlite3` (client SQL en ligne de commande, lancé par `php artisan db`) est facultatif : l'étape 3 l'utilise pour lire la table `sessions` et donne une commande de remplacement s'il manque.
 
 Versions de référence :
 
