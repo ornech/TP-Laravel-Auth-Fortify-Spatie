@@ -12,18 +12,14 @@ php artisan fortify:install
 php artisan migrate
 ```
 
-| Commande | Effet |
-| --- | --- |
-| composer require laravel/fortify | Télécharge le package dans vendor/. |
-| php artisan fortify:install | Copie dans votre projet config/fortify.php (liste des fonctionnalités), app/Providers/FortifyServiceProvider.php (enregistré dans bootstrap/providers.php), les actions de app/Actions/Fortify (dont CreateNewUser) et deux migrations. |
-| php artisan migrate | Exécute les migrations. |
+| Commande                         | Effet                                                                                                                                                                                                                                   |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| composer require laravel/fortify | Télécharge le package dans vendor/.                                                                                                                                                                                                     |
+| php artisan fortify:install      | Copie dans votre projet config/fortify.php (liste des fonctionnalités), app/Providers/FortifyServiceProvider.php (enregistré dans bootstrap/providers.php), les actions de app/Actions/Fortify (dont CreateNewUser) et deux migrations. |
+| php artisan migrate              | Exécute les migrations.                                                                                                                                                                                                                 |
 
 **Vous devez voir :** pour composer require, la ligne `Using version ^1.41 for laravel/fortify` puis la fin de l'installation sans message d'erreur ; pour fortify:install, `INFO Fortify scaffolding installed successfully.` ; pour migrate, deux lignes terminées par `DONE` : `…_add_two_factor_columns_to_users_table` et `…_create_passkeys_table`.
 
-Ces migrations ajoutent à la table users les colonnes de la double authentification (two\_factor\_\*) et créent une table passkeys. Ces fonctionnalités seront désactivées plus bas : les colonnes et la table existeront, mais resteront vides et inutilisées.
-
-> [!NOTE]
-> **Double authentification et passkeys.** La **double authentification** demande un second code en plus du mot de passe (colonnes two\_factor\_\*). Les **passkeys** sont une connexion sans mot de passe, par clé cryptographique de l'appareil (table passkeys).
 
 ## Avant de configurer quoi que ce soit
 
@@ -43,29 +39,27 @@ Vous obtenez **7 tests verts et 13 rouges** (le test du seeder, vert depuis l'é
 
 ## Limitez le nombre de routes exposées
 
-Une fois installé, Fortify expose environ trente routes : réinitialisation de mot de passe, double authentification, passkeys, modification du profil… Ce TP n'en utilise que quelques-unes.
-
-**Lancer (avant d'agir)**
+L'installation terminer, vous constaterez que Fortify expose environ trente routes : réinitialisation de mot de passe, double authentification, etc ... , etc ...
 
 ```bash
-php artisan test --filter="test_seules_les_fonctionnalites_utiles_sont_exposees|test_les_fonctionnalites_de_profil_et_de_mot_de_passe_sont_desactivees"
+php artisan route:list --only-vendor
 ```
 
-Les deux tests sont rouges, et chaque message nomme ce qui est en trop : `La réinitialisation de mot de passe doit être désactivée.` et `La modification du profil doit être désactivée.` Le test s'arrête à la première assertion qui échoue : un autre message peut apparaître une fois ce premier point réglé.
+> [!NOTE]
+> L'option --only-vendor ne liste uniquement les routes qui ont été générées par un package.
 
-La clé `features` de config/fortify.php est la liste des fonctionnalités de Fortify qui sont actives. Chaque entrée active enregistre des routes dans l'application. Le fichier généré active presque toutes les entrées :
+Fortify génère automatiquement ces routes en fonction des fonctionnalitées activées dans le fichier `config/fortify.php`:
+| Entrée                                   | Ce qu'elle active                                                           |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| Features::registration()                 | L'inscription : GET et POST /register                                       |
+| Features::resetPasswords()               | Le « mot de passe oublié » : /forgot-password et /reset-password            |
+| Features::emailVerification()            | La confirmation de l'adresse e-mail (déjà commentée dans le fichier généré) |
+| Features::updateProfileInformation()     | La modification du nom et de l'e-mail d'un compte connecté                  |
+| Features::updatePasswords()              | Le changement de mot de passe d'un compte connecté                          |
+| Features::twoFactorAuthentication([...]) | La double authentification                                                  |
+| Features::passkeys([...])                | Les passkeys                                                                |
 
-| Entrée | Ce qu'elle active |
-| --- | --- |
-| Features::registration() | L'inscription : GET et POST /register |
-| Features::resetPasswords() | Le « mot de passe oublié » : /forgot-password et /reset-password |
-| Features::emailVerification() | La confirmation de l'adresse e-mail (déjà commentée dans le fichier généré) |
-| Features::updateProfileInformation() | La modification du nom et de l'e-mail d'un compte connecté |
-| Features::updatePasswords() | Le changement de mot de passe d'un compte connecté |
-| Features::twoFactorAuthentication([...]) | La double authentification |
-| Features::passkeys([...]) | Les passkeys |
-
-**Faire :** Dans config/fortify.php, ne gardez que l'inscription dans la liste des features. Commentez les autres lignes ; la liste exacte dépend de votre version de Fortify.
+**Faire :** Dans config/fortify.php, ne conserver que l'inscription `registration()`.
 
 ```php
 'features' => [
@@ -79,26 +73,23 @@ La clé `features` de config/fortify.php est la liste des fonctionnalités de Fo
 ],
 ```
 
-Dans le fichier généré, twoFactorAuthentication([...]) et passkeys([...]) s'étendent sur plusieurs lignes. Commentez **toutes** les lignes de chaque entrée, jusqu'au ]), inclus (sélectionnez-les et utilisez Ctrl+/). Si vous ne commentez que la première, le fichier n'est plus du PHP valide et l'application plante.
-
 > [!NOTE]
-> Chaque fonctionnalité (feature) activée est une route accessible et donc une **surface d'attaque** (l'ensemble des points par où une attaque peut entrer) et du code à maintenir. Exemple concret : resetPasswords actif sans vue déclarée, et /forgot-password répond par une erreur 500.
->
-> **Règle : on n'active que ce qu'on utilise et qu'on a testé.**
+> **Règle d'or**: On n'active que ce qu'on utilise et ce que l'on a prévu de maintenir.
 
-**Relancer** la même commande. Les deux tests sont verts. Si le premier reste rouge avec le message `Les passkeys (connexion sans mot de passe) doivent être désactivées.`, il reste des lignes de Features::passkeys non commentées.
 
-**Vérifier**
+**Vérifier les routes actives**
 
 ```bash
 php artisan route:list --only-vendor
 ```
+Le nombre de route devrait avoir concidérablement diminé. 
 
-L'option --only-vendor ne liste que les routes qui viennent d'un package. Vous devez obtenir **exactement 11 lignes** : si vous en avez 18, des routes passkeys y figurent encore. Copiez la sortie dans PREUVES.md. Vous devez y retrouver les routes que ce TP utilise : GET et POST /login, POST /logout, GET et POST /register. Les autres lignes ne sont pas des fonctionnalités que vous avez activées : up (contrôle de santé) et storage/{path} viennent de Laravel, et les trois routes user/confirm-password et user/confirmed-password-status viennent de Fortify, qui les enregistre toujours. Le TP ne les utilise pas et aucune vue n'est déclarée pour elles : une personne connectée qui demande GET /user/confirm-password obtient une erreur 500. Désactiver les features réduit donc la surface exposée, sans la ramener à zéro.
+**PREUVE** : Notez les résultats `php artisan route:list --only-vendor
+`, avant et après la modification de `config/fortify.php` 
 
 ## La page d'arrivée après connexion
 
-Dans config/fortify.php, la clé home vaut /home par défaut. Cette route n'existe pas dans votre application.
+La page de redirection après authentification est définie dans `config/fortify.php` par la clé home. Par défaut elle vaut `/home`, notez que cette route n'existe pas dans votre application.
 
 **Lancer (avant d'agir)**
 
@@ -106,7 +97,7 @@ Dans config/fortify.php, la clé home vaut /home par défaut. Cette route n'exis
 php artisan test --filter="test_une_connexion_valide_ouvre_une_session|test_les_echecs_d_un_compte_ne_bloquent_pas_les_autres_comptes"
 ```
 
-Les deux tests sont rouges avec le même message :
+Les deux tests échouent avec le même message :
 
 ```text
 Failed asserting that two strings are equal.
@@ -122,7 +113,7 @@ La ligne `-` est ce que le test attendait, la ligne `+` ce que l'application a f
 'home' => '/dashboard',
 ```
 
-**Relancer** la même commande. Le test des échecs est vert. Celui de la connexion valide reste rouge, mais son message a changé : `Expected response status code [200] but received 404.` La connexion redirige maintenant vers la bonne adresse, et le test demande ensuite cette page, qui n'existe pas encore. Elle sera créée plus bas, dans cette étape.
+**Relancer** la même commande. Le test en échecs devraient passer vert. Celui de la connexion valide reste rouge, mais son message a changé : `Expected response status code [200] but received 404.` La connexion redirige maintenant vers la bonne adresse, et le test demande ensuite cette page, qui n'existe pas encore. Elle sera créée plus bas, dans cette étape.
 
 ## **Création de la vue de connexion**
 
@@ -134,18 +125,26 @@ php artisan test --filter='test_la_matrice_d_acces_est_respectee.*visiteur sur /
 
 Ce cas de la matrice d'accès demande la page /login à un visiteur. Il est rouge : `Expected response status code [200] but received 500`. Sous ce message, la cause : `Target [Laravel\Fortify\Contracts\LoginViewResponse] is not instantiable`. Fortify ne fournit pas de page : la vue à afficher se déclare dans la méthode boot() de FortifyServiceProvider.
 
-**Faire : déclarer les vues.**
+**Faire :** Déclarer les vues.
 
-Dans app/Providers/FortifyServiceProvider.php, ajoutez ces deux lignes à la fin de la méthode boot(). Ne supprimez rien de ce qui s'y trouve.
-
-FortifyServiceProvider est un service provider (voir le vocabulaire du README) : sa méthode boot() s'exécute à chaque démarrage de l'application. La ligne `Fortify::loginView(fn () => view('auth.login'))` enregistre une fonction anonyme (`fn () => …`) que Fortify appelle quand il doit afficher /login. Cette fonction renvoie la vue auth.login, c'est-à-dire le fichier resources/views/auth/login.blade.php (le point remplace le séparateur de dossier). La seconde ligne fait de même pour /register.
+Dans `app/Providers/FortifyServiceProvider.php`, ajoutez ces deux lignes à la fin de la méthode boot(). Ne supprimez rien de ce qui s'y trouve.
 
 ```php
         Fortify::loginView(fn () => view('auth.login'));
         Fortify::registerView(fn () => view('auth.register'));
 ```
+> [!note]
+> FortifyServiceProvider est un service provider (voir le vocabulaire du README) : sa méthode boot() s'exécute à chaque démarrage de l'application. 
+>  - La ligne `Fortify::loginView(fn () => view('auth.login'))` enregistre une fonction anonyme (`fn () => …`) que Fortify appelle quand il doit afficher /login. Cette fonction renvoie la vue auth.login, c'est-à-dire le fichier resources/views/auth/login.blade.php (le point remplace le séparateur de dossier).
+> - La seconde ligne fait de même pour /register.
 
-**Relancer** la même commande. Le test est toujours rouge, mais la cause a changé : `View [auth.login] not found`. Fortify sait maintenant quelle vue afficher ; le fichier n'existe pas.
+
+
+**Relancer** la même test. 
+```bash
+php artisan test --filter='test_la_matrice_d_acces_est_respectee.*visiteur sur /login'
+```
+Le test échoue toujours, mais pour une autre raison : `View [auth.login] not found`. Fortify sait maintenant quelle vue afficher (auth.login) mais ce fichier n'existe pas encore.
 
 > [!WARNING]
 > **Ce que boot() contient déjà, et pourquoi il ne faut pas l'écraser.**
@@ -162,7 +161,7 @@ FortifyServiceProvider est un service provider (voir le vocabulaire du README) :
 >
 > Vous le vérifierez vous-même à la fin de l'étape (exercice « supprimer le contenu de boot() »).
 
-**Faire — la vue de connexion.** Créez resources/views/auth/login.blade.php à partir de ce modèle commenté :
+**A Faire: la vue de connexion.** Créez la vue `resources/views/auth/login.blade.php` à partir de ce modèle :
 
 ```html
 <!DOCTYPE html>
@@ -209,12 +208,12 @@ FortifyServiceProvider est un service provider (voir le vocabulaire du README) :
 
 **Ce qui compte dans ce formulaire.**
 
-| Élément | Rôle |
-| --- | --- |
-| **@csrf** | Ajoute un jeton de protection contre la falsification de requêtes (voir le mémo ci-dessous) |
-| **old('email')** | Réaffiche l'e-mail saisi après une erreur. On ne réaffiche jamais un mot de passe. |
-| **$errors** | Contient les messages d'erreur renvoyés par Fortify |
-| **name="email", name="password"** | Les noms que Fortify attend. Un autre nom, et la connexion échoue. |
+| Élément                           | Rôle                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------- |
+| **@csrf**                         | Ajoute un jeton de protection contre la falsification de requêtes (voir le mémo ci-dessous) |
+| **old('email')**                  | Réaffiche l'e-mail saisi après une erreur. On ne réaffiche jamais un mot de passe.          |
+| **$errors**                       | Contient les messages d'erreur renvoyés par Fortify                                         |
+| **name="email", name="password"** | Les noms que Fortify attend. Un autre nom, et la connexion échoue.                          |
 
 > [!NOTE]
 > **La protection CSRF de Laravel.**
@@ -242,13 +241,15 @@ php artisan test --filter="test_une_connexion_valide_ouvre_une_session|test_un_v
 
 Les deux tests sont rouges avec `Expected response status code … but received 404` : la route /dashboard n'existe pas.
 
-**Faire — le contrôleur.** Un contrôleur est une classe dont les méthodes répondent aux routes (voir le vocabulaire du README). `make:controller` crée le fichier app/Http/Controllers/DashboardController.php, qui contient une classe vide.
+**Faire :** Le contrôleur. Un contrôleur est une classe dont les méthodes répondent aux routes (voir le vocabulaire du README).
 
 ```bash
 php artisan make:controller DashboardController
 ```
 
 **Vous devez voir :** `INFO Controller [app/Http/Controllers/DashboardController.php] created successfully.`
+
+Cette commande vient de créer le fichier `app/Http/Controllers/DashboardController.php` qui contient une classe vide.
 
 Ajoutez une méthode index() dans DashboardController. C'est la méthode que la route /dashboard appellera : `view('dashboard')` construit la page à partir du fichier resources/views/dashboard.blade.php et la renvoie.
 
@@ -259,11 +260,7 @@ public function index()
 }
 ```
 
-**Faire — la route.** Dans routes/web.php, ajoutez l'import et ce bloc. Les routes existantes restent en place. Le bloc fait trois choses :
-
-- `Route::middleware('auth')->group(function () { … })` crée un groupe de routes auquel est attaché le middleware auth. Avant d'exécuter le contrôleur, ce middleware vérifie que la personne est connectée ; sinon, il la renvoie vers /login (302) ;
-- `Route::get('/dashboard', [DashboardController::class, 'index'])` associe la méthode GET sur l'URL /dashboard à la méthode index() du contrôleur ;
-- `->name('dashboard')` donne un nom à la route : le code et les vues peuvent l'appeler par `route('dashboard')` plutôt que par son URL.
+**Faire** La route.** Dans routes/web.php, ajoutez l'import et ce bloc. Les routes existantes restent en place. Le bloc fait trois choses :
 
 ```php
 use App\Http\Controllers\DashboardController;
@@ -274,9 +271,12 @@ Route::middleware('auth')->group(function () {
 });
 ```
 
+- `Route::get('/dashboard', [DashboardController::class, 'index'])` associe la méthode GET sur l'URL /dashboard à la méthode index() du contrôleur ;
+- `->name('dashboard')` donne un nom à la route : le code et les vues peuvent l'appeler par `route('dashboard')` plutôt que par son URL.
+
 **Relancer** la même commande, avant de créer la vue. Le test du visiteur est vert : le middleware auth renvoie le visiteur vers /login, la vue n'est pas nécessaire pour cela. Celui de la connexion reste rouge, mais le message est maintenant `received 500`, avec la cause en dessous : `View [dashboard] not found`. La route et le contrôleur existent, il manque la vue. Le test `test_la_deconnexion_detruit_la_session` est lui aussi passé au vert avec cette route.
 
-**Faire — la vue.** Créez resources/views/dashboard.blade.php. `{{ auth()->user()->name }}` affiche le nom de la personne connectée : `auth()->user()` renvoie son compte (ou null pour un visiteur) et `->name` en lit le nom. Le formulaire envoie une requête POST vers la route nommée logout, fournie par Fortify (`route('logout')`), avec le jeton CSRF ajouté par @csrf :
+**Faire — la vue.** Créez le fichier `resources/views/dashboard.blade.php`. 
 
 ```html
 <!DOCTYPE html>
@@ -286,6 +286,7 @@ Route::middleware('auth')->group(function () {
     <title>Tableau de bord</title>
 </head>
 <body>
+    {{-- "auth()->user()->name" affiche le nom de la personne connectée --}}
     <h1>Bonjour {{ auth()->user()->name }}</h1>
 
     {{-- Déconnexion en POST, avec jeton CSRF --}}
@@ -297,11 +298,12 @@ Route::middleware('auth')->group(function () {
 </html>
 ```
 
-**Relancer** la même commande : les deux tests sont verts.
-
-**Vous devez voir** dans le navigateur (preuve 1) : le titre « Bonjour » suivi de votre nom, et un bouton « Se déconnecter ».
-
-La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côté serveur. Après la déconnexion, Fortify redirige vers /.
+**Relancer les tests** : les deux tests devraient passer.
+```bash
+php artisan test --filter="test_une_connexion_valide_ouvre_une_session|test_un_visiteur_est_redirige_vers_la_connexion"
+```
+> [!NOTE]
+> La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côté serveur. Après la déconnexion elle redirige vers /.
 
 > [!NOTE]
 > **Pourquoi la déconnexion est un POST ?**
@@ -310,33 +312,42 @@ La route POST /logout est fournie par Fortify : vous n'avez rien à écrire côt
 
 ## **Création de la vue d'inscription**
 
-**Lancer (avant d'agir)**
+**Lancer ce test**
 
 ```bash
 php artisan test --filter=test_l_inscription_cree_un_compte_connecte
 ```
 
-Le test commence par demander la page /register. Il est rouge : `Expected response status code [200] but received 500`, avec la cause en dessous : `View [auth.register] not found`. Fortify connaît la vue (vous l'avez déclarée plus haut), mais le fichier n'existe pas.
+Sans surprise `View [auth.register] not found`. Fortify connaît maintenant la vue, mais nous n'avons pas encore créer ce fichier.
 
-**Faire : écrivez la vue d'inscription vous-même.** Créez le fichier resources/views/auth/register.blade.php sur le modèle de la connexion. Le formulaire envoie en POST vers route('register'), contient @csrf et affiche les erreurs.
+**Ecrivez la vue d'inscription vous-même.** Créez le fichier `resources/views/auth/register.blade.php` suen vous aidant de la blade de connexion. 
+Votre formulaire devra:
+- Envoie en POST vers route('register')
+- Contenir @csrf
+- Affiche les éventuelles erreurs.
 
-| Libellé | Attribut name | Type |
-| --- | --- | --- |
-| Nom | name | text |
-| E-mail | email | email |
-| Mot de passe | password | password |
+| Libellé      | Attribut name          | Type     |
+| ------------ | ---------------------- | -------- |
+| Nom          | name                   | text     |
+| E-mail       | email                  | email    |
+| Mot de passe | password               | password |
 | Confirmation | password\_confirmation | password |
 
 Le nom password\_confirmation n'est pas libre : la règle de validation confirmed cherche un champ nommé \<champ>\_confirmation.
 
 **Vous devez voir** dans le navigateur (preuve 1) : un titre « Inscription », les champs Nom, E-mail, Mot de passe et Confirmation, et un bouton d'envoi.
 
-**Relancer** la même commande. Si le message devient `Expected: <!DOCTYPE html> … To contain: password_confirmation`, le test a bien reçu votre page mais n'y a pas trouvé le champ de confirmation : le texte affiché est le code HTML reçu, cherchez-y ce qui manque. Quand le champ est bien nommé, le test est vert : il a aussi envoyé le formulaire et vérifié que le compte est créé, la personne connectée et le mot de passe haché.
+**Relancer le test**
+```bash
+php artisan test --filter=test_l_inscription_cree_un_compte_connecte
+```
 
-L'inscription est traitée par l'action app/Actions/Fortify/CreateNewUser.php, générée par fortify:install : elle valide les champs, puis crée le compte avec un mot de passe **haché**. Ouvrez-la et lisez-la.
+ Si le message devient `Expected: <!DOCTYPE html> … To contain: password_confirmation`, le test a bien reçu votre page mais n'y a pas trouvé le champ de confirmation nommer comme attendu par Fortify.
+
+L'inscription est traitée par l'action `app/Actions/Fortify/CreateNewUser.php`, générée par fortify:install : elle valide les champs, puis crée le compte avec un mot de passe **haché**.
 
 > [!NOTE]
-> **Mot de passe haché.** On ne stocke jamais un mot de passe tel quel : on stocke son **hash**, une empreinte qu'on ne peut pas inverser. L'étape 3 le montre dans la base.
+> **Mot de passe haché.** Le mot de passe n'est jamais stoké tel quel : on stocke son **hash**, une empreinte qu'on ne peut pas inverser. L'étape 3 le montre dans la base.
 
 ## Bilan de la boucle
 
@@ -346,27 +357,36 @@ L'inscription est traitée par l'action app/Actions/Fortify/CreateNewUser.php, g
 php artisan test --filter=AuthenticationTest
 ```
 
-Vous devez obtenir **17 tests verts et 3 rouges**. Les trois rouges sont les deux cas « /accueil » de la matrice d'accès et `test_l_accueil_s_adapte_au_profil` : la page /accueil sera créée à l'étape 4. Copiez la ligne de résultat dans PREUVES.md.
+Vous devriez obtenir **17 tests verts et 3 rouges**. Les trois en échec devraient être les deux cas de la matrice d'accès et `test_l_accueil_s_adapte_au_profil` : la page /accueil sera créée à l'étape 4. 
 
-Souvenez-vous du premier lancement de l'étape : 7 verts, 13 rouges. Sur les 10 tests qui ont changé d'état depuis, chacun correspond à une action précise de cette étape : les features, la clé home, les vues, le tableau de bord.
+**Preuve :** Copiez la ligne de résultat dans PREUVES.md.
 
-**Exercice — supprimer le contenu de boot().** Le tableau d'avertissement plus haut décrit des symptômes. Vérifiez-les.
+A ce point du TP vous devriez avec les test des features, la clé home, les vues ainsi que le tableau de bord validés.
+
+**Exercice: supprimer le contenu de boot().** Le tableau d'avertissement ci dessus décrit les symptômes. Vérifiez-les.
+
+> | Ligne de boot() | Si vous la supprimez |
+> | --- | --- |
+> | Fortify::createUsersUsing(CreateNewUser::class) | L'inscription plante : Fortify ne sait plus quelle classe crée les comptes |
+> | RateLimiter::for('login', ...) | Toute connexion renvoie une 500 « Rate limiter \[login\] is not defined. » |
+> | RateLimiter::for('two-factor', ...) | Les routes de double authentification plantent, si cette fonctionnalité est active |
+>
 
 1. Mettez en commentaire (Ctrl+/) toutes les lignes de la méthode boot() de FortifyServiceProvider, sauf les deux lignes de déclaration des vues.
-2. **Prédire** : combien de tests de plus deviennent rouges ? Puis lancez le contrat.
+2. **Essayer de prédire** combien de tests de plus deviennent rouges ? Puis lancez le contrat.
 3. Il y a 11 rouges : les 3 de /accueil, et 8 nouveaux. Repérez leurs messages et comparez-les avec le tableau :
    - `Target [Laravel\Fortify\Contracts\CreatesNewUsers] is not instantiable` : 2 tests, ceux qui s'inscrivent ;
    - `Rate limiter [login] is not defined.` : 4 tests, ceux qui envoient une connexion et contrôlent la réponse ;
    - pour les 2 derniers (`test_la_connexion_enregistre_l_utilisateur_dans_la_session` et `test_la_deconnexion_detruit_la_session`), le message est celui du test lui-même (« La session ne contient pas l'utilisateur connecté. »). Il dit ce qui n'est pas arrivé, pas pourquoi : la cause est la même, la connexion plante. Un message de test ne nomme pas toujours la cause ; l'exception n'est affichée que lorsque le test contrôle un code HTTP.
 4. Décommentez les lignes et relancez : 17 verts, 3 rouges.
 
-Notez dans PREUVES.md les trois sortes de messages et le nombre de tests concernés par chacune.
+**Preuve :** Notez dans PREUVES.md les trois sortes de messages et le nombre de tests concernés par chacune.
 
 ## Preuves dans le navigateur et avec curl
 
 Les tests ne voient ni le navigateur, ni le jeton CSRF, ni les cookies : ces points se prouvent à la main.
 
-`php artisan serve` démarre le serveur web de développement de PHP sur votre machine : il répond aux requêtes du navigateur et de curl jusqu'à son arrêt. Lancez-le dans un terminal dédié et laissez-le tourner jusqu'à la fin de l'étape (arrêt avec Ctrl+C). Vous le relancerez de la même façon aux étapes 3 et 4, qui utilisent le navigateur :
+Démarrez le serveur web de développement
 
 ```bash
 php artisan serve
@@ -376,12 +396,17 @@ php artisan serve
 
 1. Inscrivez un nouveau compte dans le navigateur, sur http://127.0.0.1:8000/register (mot de passe d'au moins 8 caractères). Vous arrivez sur /dashboard, qui affiche « Bonjour » suivi de votre nom. Notez l'URL obtenue. Cliquez sur « Se déconnecter » et notez l'URL obtenue : c'est / (la page d'accueil de Laravel). Les messages d'erreur de Laravel (mot de passe trop court, confirmation différente…) s'affichent en anglais : c'est normal, la langue de l'application est l'anglais par défaut.
 2. Retirez @csrf de la vue de connexion (la directive qui ajoute au formulaire le champ caché \_token) et connectez-vous avec alice@exemple.test (mot de passe password) dans le navigateur, sur http://127.0.0.1:8000 (la page d'accueil de Laravel propose un lien « Log in »). Notez si la connexion fonctionne et, d'après le mémo sur la protection CSRF, par quel mécanisme. Remettez @csrf, puis déconnectez-vous. Résultat attendu, à comparer avec votre observation : la connexion fonctionne et vous arrivez sur /dashboard. Le navigateur envoie l'en-tête Sec-Fetch-Site: same-origin vers 127.0.0.1, ce qui suffit au premier critère du mémo, sans jeton.
-3. Envoyez la même requête sans navigateur, avec curl, depuis un second terminal (le serveur lancé plus haut doit tourner) : curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password". Sous Windows PowerShell, tapez curl.exe. Notez le code HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
-4. Tentez six connexions avec un mauvais mot de passe en moins d'une minute, avec le compte bob@exemple.test, sur lequel vous ne vous êtes pas encore connecté. Notez ce qui s'affiche à la sixième. Résultat attendu, à comparer avec votre observation : les cinq premières tentatives affichent de nouveau le formulaire avec le message « These credentials do not match our records. » ; la sixième affiche une page « 429 Too Many Requests ». Une connexion réussie compte aussi dans la limite : sur un compte où vous venez de vous connecter (alice@exemple.test à la preuve 2), le blocage arriverait dès la cinquième tentative avec un mauvais mot de passe.
+3. Envoyez la même requête sans navigateur, avec curl, depuis un second terminal (le serveur lancé plus haut doit tourner) : 
+```bash
+curl -i -X POST http://127.0.0.1:8000/login -d "email=alice@exemple.test" -d "password=password"
+```
+Notez le code réponse HTTP de la première ligne. Vous lirez « HTTP/1.1 419 unknown status » : « unknown status » est le libellé du serveur de développement PHP, le code est bien 419.
+4. Tentez six connexions en moins d'une minute avec un mauvais mot de passe sur le compte `bob@exemple.test`.
+5. Notez ce qui s'affiche à la sixième tentative.
+
 
 > [!NOTE]
 > **curl.** curl est un outil en ligne de commande qui envoie des requêtes HTTP sans navigateur. L'option -i affiche les en-têtes de la réponse, -X choisit la méthode (ici POST) et -d envoie des champs de formulaire.
 
 **Question 1.** Le limiteur de boot() compte les tentatives par couple « e-mail + adresse IP ». Quel problème poserait un comptage par adresse IP seule dans un lycée où tous les postes sortent par la même IP ? Quelle attaque ce couple ne bloque-t-il pas ?
 
-Suite : l'étape 3 regarde ce qui s'est passé dans la base et dans les cookies pendant ces connexions.
