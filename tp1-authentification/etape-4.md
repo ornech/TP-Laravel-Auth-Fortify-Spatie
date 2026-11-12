@@ -137,10 +137,10 @@ Route::group([], function () {
 
 Résultat attendu, à comparer avec votre observation :
 
-- point 2 : une page d'erreur 500 dont le message est `Attempt to read property "name" on null`.![alt text](image.png)
+- point 2 : une page d'erreur 500 dont le message est `Attempt to read property "name" on null`.![alt text](images/tp1-error500.png)
   Sans le middleware `auth`, la requête atteint le contrôleur et la vue, a qui l'on demande de récupérer la propriété `name` d'un compte qui n'est pas connecté mais surtout il n'y a pas de redirection vers /login ;
 - point 3 : 3 tests échouent
-  ![alt text](image-1.png)
+  ![alt text](images/tp1-test.png)
   , le cas « visiteur sur /dashboard » de la matrice (302 attendu, 500 reçu), `test_un_visiteur_est_redirige_vers_la_connexion` et `test_la_deconnexion_detruit_la_session`.
 
 **Preuve**
@@ -193,7 +193,10 @@ php artisan route:list --path=dashboard -v
                  ⇂ web
                  ⇂ auth
 ```
-On retrouve bien le middleware auth qui vérifie si l'utilisateur est connecté et le redirige vers /login si ce n'est pas le cas.
+On retrouve bien le middleware auth qui vérifie si l'utilisateur est connecté et le redirige vers /login si ce n'est pas le cas.    
 
 
 > **Question 3.** Sur /accueil, le lien « Tableau de bord » est masqué aux visiteurs par @auth. Qu'est-ce qui empêche réellement un visiteur d'ouvrir /dashboard ? Comment l'avez-vous prouvé ?
+
+**Exercice suplémentaire:**
+Créer un vue `profil` qui affiche les informations sur le compte connecté. Cette vue doit être protégée et le lien `Profil` doit apparaitre dans le dashboard
